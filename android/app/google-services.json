@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "752091101348",
+    "project_id": "ecashier-b83dc",
+    "storage_bucket": "ecashier-b83dc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:752091101348:android:7ba9ac137b44fabb980e31",
+        "android_client_info": {
+          "package_name": "com.larisjaya.ecashier"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "752091101348-q4lmmet2nksvupn5afh9moqcp3imeja4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.larisjaya.ecashier",
+            "certificate_hash": "241af94a96d62c0ef655eb318a3e0e7a42b22367"
+          }
+        },
+        {
+          "client_id": "752091101348-6tp414knbfafm6ag0qu93b2h5b408q2r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-waQ_avG6M8zgESBTMUziX8uIs-SJ2Qc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "752091101348-6tp414knbfafm6ag0qu93b2h5b408q2r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
