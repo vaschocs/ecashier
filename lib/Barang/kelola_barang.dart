@@ -1,3 +1,4 @@
+import 'package:ecashier/Barang/kategori.dart';
 import 'package:ecashier/Barang/produk.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class KelolaBarangPage extends StatelessWidget {
         body: TabBarView(
           children: [
             ProdukPage(),
-            Text('Kategori'),
+            KategoriPage()
 
           ],
         ),
