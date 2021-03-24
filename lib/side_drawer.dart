@@ -1,9 +1,24 @@
+import 'package:ecashier/main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ecashier/Barang/kelola_barang.dart';
 import 'package:ecashier/home.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 
-class SideDrawer extends StatelessWidget {
+class SideDrawer extends StatefulWidget {
+  SideDrawerState createState() => new SideDrawerState();
+}
+
+class SideDrawerState extends State<SideDrawer>{
+  final FirebaseAuth firebaseauth = FirebaseAuth.instance;
+  final GoogleSignIn googleSignIn = new GoogleSignIn();
+
+
+  Future<void> _logOut() async {
+    await FirebaseAuth.instance.signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -63,6 +78,14 @@ class SideDrawer extends StatelessWidget {
             leading: Icon(Icons.cancel),
             title: Text('Retur'),
             onTap: () => {Navigator.of(context).pop()},
+          ),
+          ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Log Out'),
+            onTap: () {
+              _logOut();
+              Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context)=> MyLogin())
+              );}
           ),
 
         ],
