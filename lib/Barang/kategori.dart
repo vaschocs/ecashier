@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ecashier/DatabaseManager/db_add_kat.dart';
@@ -22,22 +21,24 @@ class MyApp extends StatelessWidget {
 
 class KategoriPage extends StatefulWidget {
   KategoriPage({this.namaKategori});
-  final String namaKategori;
+  String namaKategori;
 
   @override
   _KategoriPageState createState() => _KategoriPageState();
 }
 
 class _KategoriPageState extends State<KategoriPage> {
-  List dataKategoriList = [];
+  // List dataKategoriList = [];
   TextEditingController namaKategori = TextEditingController();
   String idKategori;
 
   final _formKey = GlobalKey<FormState>();
 
   void add() async {
-    Firestore.instance.collection("kategori").document(idKategori).setData(
-        {'Nama Kategori': namaKategori.text, 'id Kategori': idKategori});
+    Firestore.instance
+        .collection("kategori")
+        .document(idKategori)
+        .setData({'namaKategori': namaKategori.text, 'idKategori': idKategori});
 
     namaKategori.text = '';
     idKategori = new DateTime.now().microsecondsSinceEpoch.toString();
@@ -46,19 +47,6 @@ class _KategoriPageState extends State<KategoriPage> {
   @override
   void initState() {
     super.initState();
-    fetchDatabaseList();
-  }
-
-  fetchDatabaseList() async {
-    dynamic resultant = await DatabaseManager().getKategoriList();
-
-    if (resultant == null) {
-      print('Tidak bisa mendapatkan data');
-    } else {
-      setState(() {
-        dataKategoriList = resultant;
-      });
-    }
   }
 
   @override
@@ -146,126 +134,213 @@ class _KategoriPageState extends State<KategoriPage> {
 }
 
 class TaskList extends StatelessWidget {
-  TaskList({this.document, this.index});
+  TaskList({this.document});
 
   final List<DocumentSnapshot> document;
-  final index;
 
-  String newKategori;
+  void updateKategori(DocumentReference index, String editKategori) {
+    Firestore.instance.runTransaction((Transaction transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(index);
+      await transaction.update(snapshot.reference, {
+        "namaKategori": editKategori,
+      });
+    });
+  }
+
+  void deleteKategori(DocumentReference index) {
+    Firestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(index);
+      await transaction.delete(snapshot.reference);
+    });
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
-
-
-
-
-
     final _formKey = GlobalKey<FormState>();
-
     return new ListView.builder(
       itemCount: document.length,
-      itemBuilder: (BuildContext context, int i) {
-        String namaKategori = document[i].data['Nama Kategori'].toString();
+      itemBuilder: (
+        BuildContext context,
+        int i,
+      ) {
+        String namaKategori = document[i].data['namaKategori'].toString();
+        String idKategori = document[i].data['idKategori'].toString();
         TextEditingController editKategori =
             TextEditingController(text: namaKategori);
+        final index = document[i].reference;
 
-        // void updateKategori() {
-        //   Firestore.instance.runTransaction((Transaction transaction) async {
-        //     DocumentSnapshot snapshot = await transaction.get(i);
-        //     await transaction.update(snapshot.reference,{
-        //       "editKategori" : newKategori
-        //     });
-        //   });
-        // }
         return new Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(5.0),
           child: Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                new Row(
+              color: Colors.white60,
+              child: Card(
+                shape: Border.all(color: Colors.green),
+                child: new Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    new Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: Icon(Icons.menu, color: Colors.green),
-                    ),
-                    Text(
-                      namaKategori,
-                      style: new TextStyle(fontSize: 20.0, letterSpacing: 1.0),
-                    ),
-                    new IconButton(
-                        icon: Icon(Icons.edit),
-                        color: Colors.green,
-                        alignment: Alignment.centerRight,
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  content: Stack(
-                                    // ignore: deprecated_member_use
-                                    overflow: Overflow.visible,
-                                    children: <Widget>[
-                                      Form(
-                                        key: _formKey,
-                                        child: Column(
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          new Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Icon(Icons.menu, color: Colors.green),
+                          ),
+                          Text(
+                            namaKategori,
+                            style: new TextStyle(
+                                fontSize: 20.0, letterSpacing: 1.0),
+                          ),
+                        ]),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.end, children: <
+                        Widget>[
+                      new IconButton(
+                          icon: Icon(Icons.edit),
+                          color: Colors.green,
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  new TaskList();
+                                  return AlertDialog(
+                                    content: Stack(
+                                      // ignore: deprecated_member_use
+                                      overflow: Overflow.visible,
+                                      children: <Widget>[
+                                        Form(
+                                          key: _formKey,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: <Widget>[
+                                              Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 1),
+                                                child: TextFormField(
+                                                  decoration: InputDecoration(
+                                                      border:
+                                                          OutlineInputBorder(),
+                                                      labelText:
+                                                          'Nama Kategori'),
+                                                  controller: editKategori,
+                                                ),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: <Widget>[
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: RaisedButton(
+                                                      child: Text("Batal"),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: RaisedButton(
+                                                      color: Colors.green,
+                                                      child: Text(
+                                                        "Edit",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white),
+                                                      ),
+                                                      onPressed: () async {
+                                                        updateKategori(index,
+                                                            editKategori.text);
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                });
+                          }),
+                      new IconButton(
+                          icon: Icon(Icons.delete),
+                          color: Colors.green,
+                          onPressed: () async {
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  new TaskList();
+                                  return AlertDialog(
+                                    content: Stack(
+                                      // ignore: deprecated_member_use
+                                      overflow: Overflow.visible,
+                                      children: <Widget>[
+                                        Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: <Widget>[
                                             Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                  vertical: 1),
-                                              child: TextFormField(
-                                                decoration: InputDecoration(
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                    labelText: 'Nama Kategori'),
-                                                controller: editKategori,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                  "Apakah benar anda ingin menghapus kategori" + ' ' + namaKategori + "?", style: TextStyle(fontWeight: FontWeight.bold),),
                                             ),
                                             Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: <Widget>[
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: RaisedButton(
-                                                    child: Text("Batal"),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: RaisedButton(
-                                                    color: Colors.green,
-                                                    child: Text(
-                                                      "Edit",
-                                                      style: TextStyle(
-                                                          color: Colors.white),
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: <Widget>[
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: RaisedButton(
+                                                      child: Text("Batal"),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
                                                     ),
-                                                    onPressed: () async {
-                                                      updateKategori();
-                                                    },
                                                   ),
-                                                )
-                                              ],
-                                            ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: RaisedButton(
+                                                      color: Colors.green,
+                                                      child: Text(
+                                                        "Hapus",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white),
+                                                      ),
+                                                      onPressed: () async {
+                                                        deleteKategori(index);
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  )
+                                                ]),
                                           ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              });
-                        })
+                                      ],
+                                    ),
+                                  );
+                                });
+                          })
+                    ]),
                   ],
                 ),
-              ],
-            ),
-          ),
+              )),
         );
       },
     );

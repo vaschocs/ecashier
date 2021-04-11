@@ -52,15 +52,15 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
         .collection("barang")
         .document(barcodeBarang.text)
         .setData({
-      'Nama Barang': namaBarang.text,
-      'Merk Barang': merkBarang.text,
-      'Kategori Barang': katBarang.text,
-      'Harga Jual': hjBarang.text,
-      'Harga Beli': hbBarang.text,
-      'Barcode Barang': barcodeBarang.text,
-      'Jumlah Stok': jmlStok.text,
-      'Satuan': satuan.text,
-      'Minimal Stok': minStok.text,
+      'namaBarang': namaBarang.text,
+      'merkBarang': merkBarang.text,
+      'kategoriBarang': katBarang.text,
+      'hjBarang': hjBarang.text,
+      'hbBarang': hbBarang.text,
+      'barcodeBarang': barcodeBarang.text,
+      'jmlStok': jmlStok.text,
+      'satuan': satuan.text,
+      'minStok': minStok.text,
       // 'imageGambar Barang':
     });
 
