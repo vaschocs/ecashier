@@ -119,15 +119,7 @@ class _KategoriPageState extends State<KategoriPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: RaisedButton(
-                                    child: Text("Batal"),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ),
+
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: RaisedButton(
@@ -141,7 +133,16 @@ class _KategoriPageState extends State<KategoriPage> {
                                       Navigator.of(context).pop();
                                     },
                                   ),
-                                )
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: RaisedButton(
+                                    child: Text("Batal"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -167,26 +168,33 @@ class TaskList extends StatelessWidget {
   String namaKategori;
 
 
-  void updateKategori(
-    // List<DocumentSnapshot> documents,
-    DocumentReference index, String editKategori
-  ) {
-    Firestore.instance.runTransaction((Transaction transaction) async {
-      DocumentSnapshot snapshot = await transaction.get(index);
-      await transaction.update(snapshot.reference, {
-        "namaKategori": editKategori,
+  void updateKategori(List<DocumentSnapshot> documents, DocumentReference index, String editKategori) async {
+    if (documents.length >= 1) {
+      final snackBar = SnackBar(
+          content: Text(
+              'Nama Kategori Sudah Terdaftar'));
+      ScaffoldMessenger.of(
+          konteks)
+          .showSnackBar(
+          snackBar);
+    } else {
+      Firestore.instance.runTransaction((Transaction transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(index);
+        await transaction.update(snapshot.reference, {
+          "namaKategori": editKategori,
+        });
       });
-    });
+    }
   }
 
-  Future<bool> doesNameAlreadyExist(index) async {
+  Future<bool> doesNameAlreadyExist(index, editKategori) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('kategori')
         .where('editKategori', isEqualTo: namaKategori)
         .limit(1)
         .getDocuments();
     final List<DocumentSnapshot> documents = result.documents;
-    // updateKategori(documents,index,editKategori.text);
+    updateKategori(documents,index,editKategori);
   }
 
   void deleteKategori(
@@ -298,8 +306,7 @@ class TaskList extends StatelessWidget {
                                                                 Colors.white),
                                                       ),
                                                       onPressed: () async {
-                                                        updateKategori(index, editKategori.text);
-                                                        // updateKategori(index,editKategori.text);
+                                                        doesNameAlreadyExist(index,editKategori.text);
                                                         Navigator.of(context)
                                                             .pop();
                                                       },
@@ -353,18 +360,6 @@ class TaskList extends StatelessWidget {
                                                         const EdgeInsets.all(
                                                             8.0),
                                                     child: RaisedButton(
-                                                      child: Text("Batal"),
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: RaisedButton(
                                                       color: Colors.green,
                                                       child: Text(
                                                         "Hapus",
@@ -378,14 +373,26 @@ class TaskList extends StatelessWidget {
                                                             .pop();
                                                         final snackBar = SnackBar(
                                                             content: Text(
-                                                                'Nama Kategori Berhasil Dihapus'));
+                                                                 'Kategori '+ namaKategori +' Berhasil Dihapus'));
                                                         ScaffoldMessenger.of(
                                                                 konteks)
                                                             .showSnackBar(
                                                                 snackBar);
                                                       },
                                                     ),
-                                                  )
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                    const EdgeInsets.all(
+                                                        8.0),
+                                                    child: RaisedButton(
+                                                      child: Text("Batal"),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ),
                                                 ]),
                                           ],
                                         ),

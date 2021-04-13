@@ -11,13 +11,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter login UI',
+      title: 'Kelola Barang',
 
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: KelolaBarangPage(),
+      home: Scaffold(
+        body: KelolaBarangPage(),
+      )
+
     );
   }
 }
