@@ -21,6 +21,7 @@ dependencies:
   firebase_storage: ^3.1.5
   path_provider: ^1.6.7
   file_picker: ^1.8.0
+  firebase_database: ^3.1.0
 
 
 

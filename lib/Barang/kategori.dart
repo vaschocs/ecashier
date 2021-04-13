@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ecashier/DatabaseManager/db_add_kat.dart';
 
 void main() => runApp(MyApp());
+BuildContext konteks;
+TextEditingController editKategori;
 
 class MyApp extends StatelessWidget {
   @override
@@ -14,7 +15,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: KategoriPage(),
+      home: Scaffold(
+        body: KategoriPage(),
+      ),
     );
   }
 }
@@ -30,18 +33,37 @@ class KategoriPage extends StatefulWidget {
 class _KategoriPageState extends State<KategoriPage> {
   // List dataKategoriList = [];
   TextEditingController namaKategori = TextEditingController();
+  TextEditingController editKategori;
   String idKategori;
 
   final _formKey = GlobalKey<FormState>();
 
-  void add() async {
-    Firestore.instance
-        .collection("kategori")
-        .document(idKategori)
-        .setData({'namaKategori': namaKategori.text, 'idKategori': idKategori});
+  void add(List<DocumentSnapshot> documents) async {
+    if (documents.length >= 1) {
+      final snackBar = SnackBar(content: Text('Nama Kategori Sudah Terdaftar'));
 
+      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+    } else {
+      Firestore.instance
+          .collection("kategori")
+          .document(namaKategori.text)
+          .setData({'namaKategori': namaKategori.text});
+
+      final snackBar =
+          SnackBar(content: Text('Nama Kategori Berhasil Ditambahkan'));
+      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+    }
     namaKategori.text = '';
-    idKategori = new DateTime.now().microsecondsSinceEpoch.toString();
+  }
+
+  Future<bool> doesNameAlreadyExist() async {
+    final QuerySnapshot result = await Firestore.instance
+        .collection('kategori')
+        .where('namaKategori', isEqualTo: namaKategori.text)
+        .limit(1)
+        .getDocuments();
+    final List<DocumentSnapshot> documents = result.documents;
+    add(documents);
   }
 
   @override
@@ -51,6 +73,9 @@ class _KategoriPageState extends State<KategoriPage> {
 
   @override
   Widget build(BuildContext context) {
+    setState(() {
+      konteks = context;
+    });
     return Scaffold(
       body: StreamBuilder(
         stream: Firestore.instance.collection('kategori').snapshots(),
@@ -83,9 +108,11 @@ class _KategoriPageState extends State<KategoriPage> {
                             Padding(
                               padding: EdgeInsets.symmetric(vertical: 1),
                               child: TextFormField(
+                                textCapitalization: TextCapitalization.words,
                                 decoration: InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Nama Kategori'),
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Nama Kategori',
+                                ),
                                 controller: namaKategori,
                               ),
                             ),
@@ -110,7 +137,7 @@ class _KategoriPageState extends State<KategoriPage> {
                                       style: TextStyle(color: Colors.white),
                                     ),
                                     onPressed: () async {
-                                      add();
+                                      await doesNameAlreadyExist();
                                       Navigator.of(context).pop();
                                     },
                                   ),
@@ -137,8 +164,13 @@ class TaskList extends StatelessWidget {
   TaskList({this.document});
 
   final List<DocumentSnapshot> document;
+  String namaKategori;
 
-  void updateKategori(DocumentReference index, String editKategori) {
+
+  void updateKategori(
+    // List<DocumentSnapshot> documents,
+    DocumentReference index, String editKategori
+  ) {
     Firestore.instance.runTransaction((Transaction transaction) async {
       DocumentSnapshot snapshot = await transaction.get(index);
       await transaction.update(snapshot.reference, {
@@ -147,14 +179,24 @@ class TaskList extends StatelessWidget {
     });
   }
 
-  void deleteKategori(DocumentReference index) {
+  Future<bool> doesNameAlreadyExist(index) async {
+    final QuerySnapshot result = await Firestore.instance
+        .collection('kategori')
+        .where('editKategori', isEqualTo: namaKategori)
+        .limit(1)
+        .getDocuments();
+    final List<DocumentSnapshot> documents = result.documents;
+    // updateKategori(documents,index,editKategori.text);
+  }
+
+  void deleteKategori(
+    DocumentReference index,
+  ) {
     Firestore.instance.runTransaction((transaction) async {
       DocumentSnapshot snapshot = await transaction.get(index);
       await transaction.delete(snapshot.reference);
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -193,8 +235,7 @@ class TaskList extends StatelessWidget {
                                 fontSize: 20.0, letterSpacing: 1.0),
                           ),
                         ]),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.end, children: <
+                    Row(mainAxisAlignment: MainAxisAlignment.end, children: <
                         Widget>[
                       new IconButton(
                           icon: Icon(Icons.edit),
@@ -218,6 +259,8 @@ class TaskList extends StatelessWidget {
                                                 padding: EdgeInsets.symmetric(
                                                     vertical: 1),
                                                 child: TextFormField(
+                                                  textCapitalization:
+                                                      TextCapitalization.words,
                                                   decoration: InputDecoration(
                                                       border:
                                                           OutlineInputBorder(),
@@ -255,8 +298,8 @@ class TaskList extends StatelessWidget {
                                                                 Colors.white),
                                                       ),
                                                       onPressed: () async {
-                                                        updateKategori(index,
-                                                            editKategori.text);
+                                                        updateKategori(index, editKategori.text);
+                                                        // updateKategori(index,editKategori.text);
                                                         Navigator.of(context)
                                                             .pop();
                                                       },
@@ -292,7 +335,14 @@ class TaskList extends StatelessWidget {
                                               padding:
                                                   const EdgeInsets.all(8.0),
                                               child: Text(
-                                                  "Apakah benar anda ingin menghapus kategori" + ' ' + namaKategori + "?", style: TextStyle(fontWeight: FontWeight.bold),),
+                                                "Apakah benar anda ingin menghapus kategori" +
+                                                    ' ' +
+                                                    namaKategori +
+                                                    "?",
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
                                             ),
                                             Row(
                                                 mainAxisAlignment:
@@ -322,10 +372,17 @@ class TaskList extends StatelessWidget {
                                                             color:
                                                                 Colors.white),
                                                       ),
-                                                      onPressed: () async {
+                                                      onPressed: () {
                                                         deleteKategori(index);
                                                         Navigator.of(context)
                                                             .pop();
+                                                        final snackBar = SnackBar(
+                                                            content: Text(
+                                                                'Nama Kategori Berhasil Dihapus'));
+                                                        ScaffoldMessenger.of(
+                                                                konteks)
+                                                            .showSnackBar(
+                                                                snackBar);
                                                       },
                                                     ),
                                                   )
