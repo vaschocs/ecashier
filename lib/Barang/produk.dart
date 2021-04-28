@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ecashier/Barang/add_barang.dart';
+import 'package:ecashier/Barang/addBarang.dart';
+import 'package:ecashier/Barang/editBarang.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ecashier/DatabaseManager/db_add_barang.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -26,69 +27,32 @@ class ProdukPage extends StatefulWidget {
 }
 
 class _ProdukPageState extends State<ProdukPage> {
-  List dataBarangList = [];
+
 
   @override
   void initState() {
     super.initState();
-    fetchDatabaseList();
-  }
 
-  fetchDatabaseList() async {
-    dynamic resultant = await DatabaseManager().getBarangList();
-
-    if (resultant == null) {
-      print('Tidak bisa mendapatkan data');
-    } else {
-      setState(() {
-        dataBarangList = resultant;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(children: <Widget>[
-        StreamBuilder(
-          stream: Firestore.instance.collection('barang').snapshots(),
-          builder: (context, snapshot) {
-            return ListView.builder(
-              itemCount: snapshot.data.documents.length,
-              itemBuilder: (context, index) {
-                DocumentSnapshot barang = snapshot.data.documents[index];
-                return Card(
-                  child:  ListTile(
-                    leading: SizedBox.fromSize(
-                      size: Size(60, 60), // button width and height
-                      child: ClipRect(
-                        child: Material(
-                          color: Colors.grey, // button color
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      barang['Nama Barang'],
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    dense: true,
-                    subtitle: Row(
-                      children: <Widget>[
-                        Text('Rp '),
-                        Text(barang['Harga Jual']),
-                      ],
-                    ),
-                    trailing: Column(
-                      children: <Widget>[Text('Stok'), Text(barang['Jumlah Stok'])],
-                    ),
-                  ),
-                );
+      body: StreamBuilder(
+      stream: Firestore.instance.collection('barang').snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (!snapshot.hasData)
+          return new Container(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ));
+        return new TaskList(
+          document: snapshot.data.documents,
+        );
+      },
+    ),
 
-              },
-            );
-          },
-        ),
-      ],),
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -101,6 +65,74 @@ class _ProdukPageState extends State<ProdukPage> {
         icon: Icon(Icons.add),
         backgroundColor: Colors.green,
       ),
+    );
+  }
+}
+
+class TaskList extends StatelessWidget {
+  TaskList({this.document});
+
+  final List<DocumentSnapshot> document;
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    return new ListView.builder(
+      itemCount: document.length,
+      itemBuilder: (
+          BuildContext context,
+          int i,
+          ) {
+        String namaBarang = document[i].data['namaBarang'].toString();
+        String hjBarang  = document[i].data['hjBarang'].toString();
+        String minStok = document[i].data['minStok'].toString();
+        String katBarang = document[i].data['kategoriBarang'].toString();
+        String hbBarang = document[i].data['hbBarang'].toString();
+        String jmlStok = document[i].data['jmlStok'].toString();
+        String imgBarang = document[i].data['imgBarang'].toString();
+        String satuan = document[i].data['satuan'].toString();
+
+        TextEditingController editKategori;
+
+        final index = document[i].reference;
+
+        return new Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Container(
+              color: Colors.white60,
+              child: Card(
+                shape: Border.all(color: Colors.green),
+                child: ListTile(
+                  onTap: (){
+                    Navigator.of(context).push(new MaterialPageRoute(
+                      builder: (BuildContext context)=> new EditBarangPage(
+                        namaBarang: namaBarang,
+                        katBarang: katBarang,
+                        hjBarang : hjBarang,
+                        hbBarang : hbBarang,
+                        jmlStok: jmlStok,
+                        minStok: minStok,
+                        satuan: satuan,
+                        index : document[i].reference,
+                      )
+                    ));
+                  },
+                  leading: SizedBox(
+                    height: 30.0,
+                  width: 40.0,
+                  child: Image(image: AssetImage (imgBarang)),),
+                  title: Text(namaBarang, style: TextStyle(fontSize: 20),),
+                subtitle: Text(hjBarang, style: TextStyle(fontSize: 18),),
+                trailing: Text(jmlStok, style: TextStyle(fontSize: 20),),
+                )
+
+                ),
+              ),
+        );
+
+      },
     );
   }
 }

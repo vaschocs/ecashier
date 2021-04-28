@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ecashier/side_drawer.dart';
-import 'package:ecashier/Barang/kelola_barang.dart';
+import 'package:ecashier/Barang/kelolaBarang.dart';
 
 void main() => runApp(MyApp());
 

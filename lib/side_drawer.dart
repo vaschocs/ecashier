@@ -1,7 +1,7 @@
 import 'package:ecashier/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:ecashier/Barang/kelola_barang.dart';
+import 'package:ecashier/Barang/kelolaBarang.dart';
 import 'package:ecashier/home.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 

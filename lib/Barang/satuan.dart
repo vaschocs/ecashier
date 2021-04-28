@@ -4,71 +4,66 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 BuildContext konteks;
-TextEditingController editKategori;
+TextEditingController editSatuan;
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Add kategori',
+      title: 'Add Satuan',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: KategoriPage(),
+        body: SatuanPage(),
       ),
     );
   }
 }
 
-class KategoriPage extends StatefulWidget {
-  KategoriPage({this.namaKategori});
-  String namaKategori;
+class SatuanPage extends StatefulWidget {
+  SatuanPage({this.namaSatuan});
+  String namaSatuan;
 
   @override
-  _KategoriPageState createState() => _KategoriPageState();
+  _SatuanPageState createState() => _SatuanPageState();
 }
 
-class _KategoriPageState extends State<KategoriPage> {
-  TextEditingController namaKategori = TextEditingController();
-  TextEditingController editKategori;
-  String idKategori;
-  String outputValidasi = "Nama Kategori Sudah Terdaftar";
-  bool sama;
+class _SatuanPageState extends State<SatuanPage> {
+
+  TextEditingController namaSatuan = TextEditingController();
+  TextEditingController editSatuan;
+  String idSatuan;
 
   final _formKey = GlobalKey<FormState>();
 
-  Future<bool> cek(String value, BuildContext konteksAdd) async {
+  void add(List<DocumentSnapshot> documents) async {
+    if (documents.length >= 1) {
+      final snackBar = SnackBar(content: Text('Nama Satuan Sudah Terdaftar'));
+
+      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+    } else {
+      Firestore.instance
+          .collection("satuan")
+          .document(namaSatuan.text)
+          .setData({'namaSatuan': namaSatuan.text});
+
+      final snackBar =
+      SnackBar(content: Text('Nama Satuan Berhasil Ditambahkan'));
+      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+    }
+    namaSatuan.text = '';
+  }
+
+  Future<bool> doesNameAlreadyExist() async {
     final QuerySnapshot result = await Firestore.instance
-        .collection('kategori')
-        .where('namaKategori', isEqualTo: value)
+        .collection('satuan')
+        .where('namaSatuan', isEqualTo: namaSatuan.text)
         .limit(1)
         .getDocuments();
     final List<DocumentSnapshot> documents = result.documents;
-    if (documents.length >= 1) {
-
-      await setState(() {
-        sama = true;
-      });
-    } else {
-      Firestore.instance
-          .collection("kategori")
-          .document(value)
-          .setData({'namaKategori': value});
-
-      await Navigator.of(konteksAdd).pop();
-
-      final snackBar =
-          SnackBar(content: Text('Nama Kategori Berhasil Ditambahkan'));
-      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
-
-      namaKategori.text = '';
-
-      await setState(() {
-        sama = false;
-      });
-    }
+    add(documents);
   }
 
   @override
@@ -83,13 +78,13 @@ class _KategoriPageState extends State<KategoriPage> {
     });
     return Scaffold(
       body: StreamBuilder(
-        stream: Firestore.instance.collection('kategori').snapshots(),
+        stream: Firestore.instance.collection('satuan').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData)
             return new Container(
                 child: Center(
-              child: CircularProgressIndicator(),
-            ));
+                  child: CircularProgressIndicator(),
+                ));
           return new TaskList(
             document: snapshot.data.documents,
           );
@@ -99,7 +94,7 @@ class _KategoriPageState extends State<KategoriPage> {
         onPressed: () {
           showDialog(
               context: context,
-              builder: (BuildContext konteksAdd) {
+              builder: (BuildContext context) {
                 return AlertDialog(
                   content: Stack(
                     // ignore: deprecated_member_use
@@ -116,31 +111,15 @@ class _KategoriPageState extends State<KategoriPage> {
                                 textCapitalization: TextCapitalization.words,
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
-                                  labelText: 'Nama Kategori',
+                                  labelText: 'Nama Satuan',
                                 ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Masukan Nama Kategori Baru';
-                                  } else {
-                                    cek(value, konteksAdd);
-                                    if (sama) {
-                                      return outputValidasi;
-                                    } else if (!sama) {
-
-                                      setState(() {
-                                        value = '';
-                                      });
-                                      return null;
-                                    }
-                                  }
-                                  return null;
-                                },
-                                controller: namaKategori,
+                                controller: namaSatuan,
                               ),
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
+
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: RaisedButton(
@@ -150,7 +129,8 @@ class _KategoriPageState extends State<KategoriPage> {
                                       style: TextStyle(color: Colors.white),
                                     ),
                                     onPressed: () async {
-                                      if (_formKey.currentState.validate()) ;
+                                      await doesNameAlreadyExist();
+                                      Navigator.of(context).pop();
                                     },
                                   ),
                                 ),
@@ -159,10 +139,7 @@ class _KategoriPageState extends State<KategoriPage> {
                                   child: RaisedButton(
                                     child: Text("Batal"),
                                     onPressed: () {
-                                      Navigator.of(konteksAdd).pop();
-                                      setState(() {
-                                        namaKategori.text = '';
-                                      });
+                                      Navigator.of(context).pop();
                                     },
                                   ),
                                 ),
@@ -187,71 +164,46 @@ class _KategoriPageState extends State<KategoriPage> {
 class TaskList extends StatelessWidget {
   TaskList({this.document});
 
-
   final List<DocumentSnapshot> document;
-  String namaKategori;
-  String outputValidasi = "Nama Kategori Sudah Terdaftar";
-  bool hasil;
-  bool adaFile;
+  String namaSatuan;
 
 
-  Future<bool> update(DocumentReference index, String value, BuildContext konteksUpdate) async {
-    final QuerySnapshot result = await Firestore.instance
-        .collection('kategori')
-        .where('namaKategori', isEqualTo: value)
-        .limit(1)
-        .getDocuments();
-    final List<DocumentSnapshot> documents = await result.documents;
+  void updateSatuan(List<DocumentSnapshot> documents, DocumentReference index, String editSatuan) async {
     if (documents.length >= 1) {
-    hasil = true;
+      final snackBar = SnackBar(
+          content: Text(
+              'Nama Satuan Sudah Terdaftar'));
+      ScaffoldMessenger.of(
+          konteks)
+          .showSnackBar(
+          snackBar);
     } else {
       Firestore.instance.runTransaction((Transaction transaction) async {
         DocumentSnapshot snapshot = await transaction.get(index);
-        await transaction
-            .update(snapshot.reference, {"namaKategori": value});
+        await transaction.update(snapshot.reference, {
+          "namaSatuan": editSatuan,
+        });
       });
-
-        Navigator.of(konteksUpdate).pop();
-
-        final snackBar =
-            SnackBar(content: Text('Nama Kategori Berhasil Ditambahkan'));
-        ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
-
-        namaKategori = '';
-        hasil = false;
     }
-    return null;
   }
 
-
-  Future<bool> deleteKategori (DocumentReference index, String value) async{
+  Future<bool> doesNameAlreadyExist(index, editSatuan) async {
     final QuerySnapshot result = await Firestore.instance
-        .collection('barang')
-        .where('namaKategori', isEqualTo: value)
+        .collection('satuan')
+        .where('editSatuan', isEqualTo: namaSatuan)
         .limit(1)
         .getDocuments();
     final List<DocumentSnapshot> documents = result.documents;
-    if (documents.length >= 0) {
-      final snackBar = SnackBar(
-          content: Text('Kategori ' +
-              namaKategori +
-              ' Tidak dapat dihapus karna berkaitan dengan barang di daftar barang'));
-      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
-    adaFile = true;
-    } else {
-      Firestore.instance.runTransaction((transaction) async {
-        DocumentSnapshot snapshot = await transaction.get(index);
-        await transaction.delete(snapshot.reference);
+    updateSatuan(documents,index,editSatuan);
+  }
 
-        final snackBar = SnackBar(
-            content: Text('Kategori ' +
-                namaKategori +
-                ' berhasil dihapus'));
-        ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
-
-         adaFile = false;
-      });
-    }
+  void deleteSatuan(
+      DocumentReference index,
+      ) {
+    Firestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(index);
+      await transaction.delete(snapshot.reference);
+    });
   }
 
   @override
@@ -260,12 +212,13 @@ class TaskList extends StatelessWidget {
     return new ListView.builder(
       itemCount: document.length,
       itemBuilder: (
-        BuildContext konteksUpdate,
-        int i,
-      ) {
-        String namaKategori = document[i].data['namaKategori'].toString();
-        String idKategori = document[i].data['idKategori'].toString();
-        TextEditingController editKategori = TextEditingController(text: namaKategori);
+          BuildContext context,
+          int i,
+          ) {
+        String namaSatuan = document[i].data['namaSatuan'].toString();
+        String idSatuan = document[i].data['idSatuan'].toString();
+        TextEditingController editSatuan =
+        TextEditingController(text: namaSatuan);
         final index = document[i].reference;
 
         return new Padding(
@@ -274,7 +227,6 @@ class TaskList extends StatelessWidget {
               color: Colors.white60,
               child: Card(
                 shape: Border.all(color: Colors.green),
-
                 child: new Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -286,7 +238,7 @@ class TaskList extends StatelessWidget {
                             child: Icon(Icons.menu, color: Colors.green),
                           ),
                           Text(
-                            namaKategori,
+                            namaSatuan,
                             style: new TextStyle(
                                 fontSize: 20.0, letterSpacing: 1.0),
                           ),
@@ -296,12 +248,11 @@ class TaskList extends StatelessWidget {
                       new IconButton(
                           icon: Icon(Icons.edit),
                           color: Colors.green,
-                          onPressed: ()async {
-
-
+                          onPressed: () {
                             showDialog(
                                 context: context,
-                                builder: (BuildContext konteksUpdate) {
+                                builder: (BuildContext context) {
+                                  new TaskList();
                                   return AlertDialog(
                                     content: Stack(
                                       // ignore: deprecated_member_use
@@ -313,59 +264,54 @@ class TaskList extends StatelessWidget {
                                             mainAxisSize: MainAxisSize.min,
                                             children: <Widget>[
                                               Padding(
-                                                padding: EdgeInsets.symmetric(vertical: 1),
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 1),
                                                 child: TextFormField(
-                                                  textCapitalization: TextCapitalization.words,
+                                                  textCapitalization:
+                                                  TextCapitalization.words,
                                                   decoration: InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: 'Nama Kategori',
-                                                  ),
-                                                  validator: (value)  {
-                                                    update(index, value, konteksUpdate);
-                                                    deleteKategori(index, value);
-                                                    if (value == null || value.isEmpty) {
-                                                      return 'Masukan Nama Kategori Baru';
-                                                    } else if(adaFile==true){
-                                                      return "Tidak dapat menghapus data";
-
-                                                    }else {
-                                                       if (hasil == true) {
-                                                        return outputValidasi;
-                                                      } else if (hasil==false) {
-                                                        print(hasil);
-                                                        return null;
-                                                      }
-                                                    }
-                                                    return null;
-                                                  },
-                                                  controller: editKategori,
+                                                      border:
+                                                      OutlineInputBorder(),
+                                                      labelText:
+                                                      'Nama Satuan'),
+                                                  controller: editSatuan,
                                                 ),
                                               ),
                                               Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                                 children: <Widget>[
                                                   Padding(
-                                                    padding: const EdgeInsets.all(8.0),
-                                                    child: RaisedButton(
-                                                      color: Colors.green,
-                                                      child: Text(
-                                                        "Simpan",
-                                                        style: TextStyle(color: Colors.white),
-                                                      ),
-                                                      onPressed: () async {
-                                                        if (_formKey.currentState.validate());
-                                                      },
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding: const EdgeInsets.all(8.0),
+                                                    padding:
+                                                    const EdgeInsets.all(
+                                                        8.0),
                                                     child: RaisedButton(
                                                       child: Text("Batal"),
                                                       onPressed: () {
-                                                        Navigator.of(konteksUpdate).pop();
+                                                        Navigator.of(context)
+                                                            .pop();
                                                       },
                                                     ),
                                                   ),
+                                                  Padding(
+                                                    padding:
+                                                    const EdgeInsets.all(
+                                                        8.0),
+                                                    child: RaisedButton(
+                                                      color: Colors.green,
+                                                      child: Text(
+                                                        "Edit",
+                                                        style: TextStyle(
+                                                            color:
+                                                            Colors.white),
+                                                      ),
+                                                      onPressed: () async {
+                                                        doesNameAlreadyExist(index,editSatuan.text);
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  )
                                                 ],
                                               ),
                                             ],
@@ -382,7 +328,7 @@ class TaskList extends StatelessWidget {
                           onPressed: () async {
                             showDialog(
                                 context: context,
-                                builder: (BuildContext deleteKonteks) {
+                                builder: (BuildContext context) {
                                   new TaskList();
                                   return AlertDialog(
                                     content: Stack(
@@ -394,48 +340,57 @@ class TaskList extends StatelessWidget {
                                           children: <Widget>[
                                             Padding(
                                               padding:
-                                                  const EdgeInsets.all(8.0),
+                                              const EdgeInsets.all(8.0),
                                               child: Text(
-                                                "Apakah benar anda ingin menghapus kategori" +
+                                                "Apakah benar anda ingin menghapus satuan" +
                                                     ' ' +
-                                                    namaKategori +
+                                                    namaSatuan +
                                                     "?",
                                                 style: TextStyle(
                                                     fontWeight:
-                                                        FontWeight.bold),
+                                                    FontWeight.bold),
                                               ),
                                             ),
                                             Row(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.center,
+                                                MainAxisAlignment.center,
                                                 children: <Widget>[
                                                   Padding(
                                                     padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
+                                                    const EdgeInsets.all(
+                                                        8.0),
                                                     child: RaisedButton(
                                                       color: Colors.green,
                                                       child: Text(
                                                         "Hapus",
                                                         style: TextStyle(
                                                             color:
-                                                                Colors.white),
+                                                            Colors.white),
                                                       ),
                                                       onPressed: () {
-                                                        if (_formKey
-                                                            .currentState
-                                                            .validate());
+                                                        deleteSatuan(index);
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                        final snackBar = SnackBar(
+                                                            content: Text(
+                                                                'Satuan'
+                                                                    ' '+ namaSatuan +' Berhasil Dihapus'));
+                                                        ScaffoldMessenger.of(
+                                                            konteks)
+                                                            .showSnackBar(
+                                                            snackBar);
                                                       },
                                                     ),
                                                   ),
                                                   Padding(
                                                     padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
+                                                    const EdgeInsets.all(
+                                                        8.0),
                                                     child: RaisedButton(
                                                       child: Text("Batal"),
                                                       onPressed: () {
-                                                        Navigator.of(deleteKonteks).pop();
+                                                        Navigator.of(context)
+                                                            .pop();
                                                       },
                                                     ),
                                                   ),
