@@ -47,14 +47,13 @@ class _KategoriPageState extends State<KategoriPage> {
         .getDocuments();
     final List<DocumentSnapshot> documents = result.documents;
     if (documents.length >= 1) {
-
       await setState(() {
         sama = true;
       });
     } else {
       Firestore.instance
           .collection("kategori")
-          .document(value)
+          .document()
           .setData({'namaKategori': value});
 
       await Navigator.of(konteksAdd).pop();
@@ -126,7 +125,6 @@ class _KategoriPageState extends State<KategoriPage> {
                                     if (sama) {
                                       return outputValidasi;
                                     } else if (!sama) {
-
                                       setState(() {
                                         value = '';
                                       });
@@ -187,13 +185,12 @@ class _KategoriPageState extends State<KategoriPage> {
 class TaskList extends StatelessWidget {
   TaskList({this.document});
 
-
   final List<DocumentSnapshot> document;
   String namaKategori;
   String outputValidasi = "Nama Kategori Sudah Terdaftar";
   bool hasil;
   bool adaFile;
-
+  bool fileUsed;
 
   Future<bool> update(DocumentReference index, String value, BuildContext konteksUpdate) async {
     final QuerySnapshot result = await Firestore.instance
@@ -203,56 +200,27 @@ class TaskList extends StatelessWidget {
         .getDocuments();
     final List<DocumentSnapshot> documents = await result.documents;
     if (documents.length >= 1) {
-    hasil = true;
+      hasil = true;
     } else {
       Firestore.instance.runTransaction((Transaction transaction) async {
         DocumentSnapshot snapshot = await transaction.get(index);
-        await transaction
-            .update(snapshot.reference, {"namaKategori": value});
+        await transaction.update(snapshot.reference, {"namaKategori": editKategori.text});
       });
 
-        Navigator.of(konteksUpdate).pop();
+      Navigator.of(konteksUpdate).pop();
 
-        final snackBar =
-            SnackBar(content: Text('Nama Kategori Berhasil Ditambahkan'));
-        ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+      final snackBar =
+          SnackBar(content: Text('Nama Kategori berhasil diubah'));
+      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
 
-        namaKategori = '';
-        hasil = false;
+      namaKategori = '';
+      hasil = false;
     }
     return null;
   }
 
 
-  Future<bool> deleteKategori (DocumentReference index, String value) async{
-    final QuerySnapshot result = await Firestore.instance
-        .collection('barang')
-        .where('namaKategori', isEqualTo: value)
-        .limit(1)
-        .getDocuments();
-    final List<DocumentSnapshot> documents = result.documents;
-    if (documents.length >= 0) {
-      final snackBar = SnackBar(
-          content: Text('Kategori ' +
-              namaKategori +
-              ' Tidak dapat dihapus karna berkaitan dengan barang di daftar barang'));
-      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
-    adaFile = true;
-    } else {
-      Firestore.instance.runTransaction((transaction) async {
-        DocumentSnapshot snapshot = await transaction.get(index);
-        await transaction.delete(snapshot.reference);
 
-        final snackBar = SnackBar(
-            content: Text('Kategori ' +
-                namaKategori +
-                ' berhasil dihapus'));
-        ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
-
-         adaFile = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -264,9 +232,62 @@ class TaskList extends StatelessWidget {
         int i,
       ) {
         String namaKategori = document[i].data['namaKategori'].toString();
-        String idKategori = document[i].data['idKategori'].toString();
-        TextEditingController editKategori = TextEditingController(text: namaKategori);
+        TextEditingController editKategori =
+            TextEditingController(text: namaKategori);
         final index = document[i].reference;
+
+        Future<bool> updateAda(DocumentReference index, String value, BuildContext konteksUpdate) async {
+          final QuerySnapshot result = await Firestore.instance
+              .collection('barang')
+              .where('kategoriBarang', isEqualTo: editKategori.text)
+              .getDocuments();
+          final List<DocumentSnapshot> documents = await result.documents;
+          for (int i = 0; i <= documents.length; i++) {
+            Firestore.instance.runTransaction((Transaction transaction) async {
+              DocumentSnapshot snapshot = await transaction.get(documents[i].reference);
+              await transaction
+                  .update(snapshot.reference, {"kategoriBarang": editKategori.text});
+            });
+            Navigator.of(konteksUpdate).pop();
+
+            final snackBar = SnackBar(content: Text('Nama Kategori Berhasil Diubah'));
+            ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+
+            namaKategori = '';
+          }
+          fileUsed = true;
+        }
+
+        Future<bool> deleteKategori(DocumentReference index, BuildContext deleteKonteks ) async {
+          final QuerySnapshot result = await Firestore.instance
+              .collection('barang')
+              .where('kategoriBarang', isEqualTo: namaKategori)
+              .limit(1)
+              .getDocuments();
+          final List<DocumentSnapshot> documents = result.documents;
+
+          if (documents.length >= 1) {
+            adaFile = true;
+          } else {
+            Firestore.instance.runTransaction((transaction) async {
+              // final snackBar = SnackBar(
+              DocumentSnapshot snapshot = await transaction.get(index);
+              await transaction.delete(snapshot.reference);
+
+
+              Navigator.of(
+                  deleteKonteks)
+                  .pop();
+
+              final snackBar = SnackBar(
+                  content: Text(
+                      'Kategori '' berhasil dihapus'));
+              ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+
+              adaFile = false;
+            });
+          }
+        }
 
         return new Padding(
           padding: const EdgeInsets.all(5.0),
@@ -274,7 +295,6 @@ class TaskList extends StatelessWidget {
               color: Colors.white60,
               child: Card(
                 shape: Border.all(color: Colors.green),
-
                 child: new Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -296,9 +316,7 @@ class TaskList extends StatelessWidget {
                       new IconButton(
                           icon: Icon(Icons.edit),
                           color: Colors.green,
-                          onPressed: ()async {
-
-
+                          onPressed: () async {
                             showDialog(
                                 context: context,
                                 builder: (BuildContext konteksUpdate) {
@@ -313,26 +331,30 @@ class TaskList extends StatelessWidget {
                                             mainAxisSize: MainAxisSize.min,
                                             children: <Widget>[
                                               Padding(
-                                                padding: EdgeInsets.symmetric(vertical: 1),
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 1),
                                                 child: TextFormField(
-                                                  textCapitalization: TextCapitalization.words,
+                                                  textCapitalization:
+                                                      TextCapitalization.words,
                                                   decoration: InputDecoration(
-                                                    border: OutlineInputBorder(),
+                                                    border:
+                                                        OutlineInputBorder(),
                                                     labelText: 'Nama Kategori',
                                                   ),
-                                                  validator: (value)  {
+                                                  validator: (value) {
                                                     update(index, value, konteksUpdate);
-                                                    deleteKategori(index, value);
-                                                    if (value == null || value.isEmpty) {
+                                                    print ('LOL' +  hasil.toString());
+                                                    // updateAda(index, value, konteksUpdate);
+                                                    if (value == null ||
+                                                        value.isEmpty) {
                                                       return 'Masukan Nama Kategori Baru';
-                                                    } else if(adaFile==true){
-                                                      return "Tidak dapat menghapus data";
-
-                                                    }else {
-                                                       if (hasil == true) {
+                                                    } else {
+                                                      if (hasil == true) {
+                                                        // print('JAWABAN' +
+                                                        //     adaFile.toString());
                                                         return outputValidasi;
-                                                      } else if (hasil==false) {
-                                                        print(hasil);
+                                                        print('JAWABAN' + hasil.toString());
+                                                      } else if (hasil != true) {
                                                         return null;
                                                       }
                                                     }
@@ -342,27 +364,38 @@ class TaskList extends StatelessWidget {
                                                 ),
                                               ),
                                               Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
                                                 children: <Widget>[
                                                   Padding(
-                                                    padding: const EdgeInsets.all(8.0),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
                                                     child: RaisedButton(
                                                       color: Colors.green,
                                                       child: Text(
                                                         "Simpan",
-                                                        style: TextStyle(color: Colors.white),
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white),
                                                       ),
                                                       onPressed: () async {
-                                                        if (_formKey.currentState.validate());
+                                                        if (_formKey
+                                                            .currentState
+                                                            .validate()) ;
                                                       },
                                                     ),
                                                   ),
                                                   Padding(
-                                                    padding: const EdgeInsets.all(8.0),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
                                                     child: RaisedButton(
                                                       child: Text("Batal"),
                                                       onPressed: () {
-                                                        Navigator.of(konteksUpdate).pop();
+                                                        Navigator.of(
+                                                                konteksUpdate)
+                                                            .pop();
                                                       },
                                                     ),
                                                   ),
@@ -422,9 +455,25 @@ class TaskList extends StatelessWidget {
                                                                 Colors.white),
                                                       ),
                                                       onPressed: () {
-                                                        if (_formKey
-                                                            .currentState
-                                                            .validate());
+                                                      deleteKategori(index, deleteKonteks);
+                                                        if (adaFile == true) {
+                                                          Navigator.of(
+                                                                  deleteKonteks)
+                                                              .pop();
+                                                          final snackBar = SnackBar(
+                                                              content: Text(
+                                                                  'Kategori ' +
+                                                                      namaKategori +
+                                                                      ' tidak dapat dihapus karna berkaitan dengan barang yang ada'));
+                                                          ScaffoldMessenger.of(
+                                                                  konteks)
+                                                              .showSnackBar(
+                                                                  snackBar);
+                                                        } else {
+
+                                                        }
+                                                        return null;
+                                                        ;
                                                       },
                                                     ),
                                                   ),
@@ -435,7 +484,9 @@ class TaskList extends StatelessWidget {
                                                     child: RaisedButton(
                                                       child: Text("Batal"),
                                                       onPressed: () {
-                                                        Navigator.of(deleteKonteks).pop();
+                                                        Navigator.of(
+                                                                deleteKonteks)
+                                                            .pop();
                                                       },
                                                     ),
                                                   ),

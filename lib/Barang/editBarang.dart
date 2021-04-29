@@ -174,10 +174,10 @@ class _EditBarangPageState extends State<EditBarangPage> {
                         DocumentSnapshot snap = snapshot.data.documents[i];
                         kategoriItems.add(DropdownMenuItem(
                           child: Text(
-                            snap.documentID,
+                            snap.data['namaKategori'],
                             style: TextStyle(color: Colors.black),
                           ),
-                          value: "${snap.documentID}",
+                          value: "${snap.data['namaKategori']}",
                         ));
                       }
                       return Container(
@@ -187,7 +187,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                           child: DropdownButtonFormField(
                             decoration: InputDecoration(
                                 border: OutlineInputBorder(),
-                                labelText: 'Kategori Barang Barang'),
+                                labelText: 'Kategori Barang'),
                             value: selectedKategori,
                             items: kategoriItems,
                             validator: (value) {
