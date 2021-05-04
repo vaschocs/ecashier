@@ -1,3 +1,4 @@
+import 'package:ecashier/Restock/kelolaRestock.dart';
 import 'package:ecashier/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +58,11 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.add_shopping_cart_sharp),
             title: Text('Restock'),
-            onTap: () => {Navigator.of(context).pop()},
+            onTap: () =>{Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => KelolaRestockPage(),
+                ))},
           ),
           ListTile(
             leading: Icon(Icons.history),
@@ -72,11 +77,6 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.compare_arrows_sharp),
             title: Text('Pergerakan Barang'),
-            onTap: () => {Navigator.of(context).pop()},
-          ),
-          ListTile(
-            leading: Icon(Icons.cancel),
-            title: Text('Retur'),
             onTap: () => {Navigator.of(context).pop()},
           ),
           ListTile(

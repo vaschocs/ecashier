@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 BuildContext konteks;
-TextEditingController editKategori;
+// TextEditingController editKategori;
 
 class MyApp extends StatelessWidget {
   @override
@@ -192,7 +192,8 @@ class TaskList extends StatelessWidget {
   bool adaFile;
   bool fileUsed;
 
-  Future<bool> update(DocumentReference index, String value, BuildContext konteksUpdate) async {
+  Future<bool> update(
+      DocumentReference index, String value, BuildContext konteksUpdate) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('kategori')
         .where('namaKategori', isEqualTo: value)
@@ -204,13 +205,12 @@ class TaskList extends StatelessWidget {
     } else {
       Firestore.instance.runTransaction((Transaction transaction) async {
         DocumentSnapshot snapshot = await transaction.get(index);
-        await transaction.update(snapshot.reference, {"namaKategori": editKategori.text});
+        await transaction.update(snapshot.reference, {"namaKategori": value});
       });
 
       Navigator.of(konteksUpdate).pop();
 
-      final snackBar =
-          SnackBar(content: Text('Nama Kategori berhasil diubah'));
+      final snackBar = SnackBar(content: Text('Nama Kategori berhasil diubah'));
       ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
 
       namaKategori = '';
@@ -218,9 +218,6 @@ class TaskList extends StatelessWidget {
     }
     return null;
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -232,33 +229,23 @@ class TaskList extends StatelessWidget {
         int i,
       ) {
         String namaKategori = document[i].data['namaKategori'].toString();
-        TextEditingController editKategori =
-            TextEditingController(text: namaKategori);
+        TextEditingController editKategori = TextEditingController(text: namaKategori);
         final index = document[i].reference;
 
         Future<bool> updateAda(DocumentReference index, String value, BuildContext konteksUpdate) async {
           final QuerySnapshot result = await Firestore.instance
               .collection('barang')
-              .where('kategoriBarang', isEqualTo: editKategori.text)
+              .where('kategoriBarang', isEqualTo: value)
               .getDocuments();
           final List<DocumentSnapshot> documents = await result.documents;
-          for (int i = 0; i <= documents.length; i++) {
-            Firestore.instance.runTransaction((Transaction transaction) async {
-              DocumentSnapshot snapshot = await transaction.get(documents[i].reference);
-              await transaction
-                  .update(snapshot.reference, {"kategoriBarang": editKategori.text});
-            });
-            Navigator.of(konteksUpdate).pop();
-
-            final snackBar = SnackBar(content: Text('Nama Kategori Berhasil Diubah'));
-            ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
-
-            namaKategori = '';
+          if(documents.length>=0){
+            fileUsed = true;
           }
-          fileUsed = true;
         }
 
-        Future<bool> deleteKategori(DocumentReference index, BuildContext deleteKonteks ) async {
+        // ignore: missing_return
+        Future<bool> deleteKategori(
+            DocumentReference index, BuildContext deleteKonteks) async {
           final QuerySnapshot result = await Firestore.instance
               .collection('barang')
               .where('kategoriBarang', isEqualTo: namaKategori)
@@ -274,14 +261,10 @@ class TaskList extends StatelessWidget {
               DocumentSnapshot snapshot = await transaction.get(index);
               await transaction.delete(snapshot.reference);
 
+              Navigator.of(deleteKonteks).pop();
 
-              Navigator.of(
-                  deleteKonteks)
-                  .pop();
-
-              final snackBar = SnackBar(
-                  content: Text(
-                      'Kategori '' berhasil dihapus'));
+              final snackBar =
+                  SnackBar(content: Text('Kategori ' ' berhasil dihapus'));
               ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
 
               adaFile = false;
@@ -342,21 +325,19 @@ class TaskList extends StatelessWidget {
                                                     labelText: 'Nama Kategori',
                                                   ),
                                                   validator: (value) {
-                                                    update(index, value, konteksUpdate);
-                                                    print ('LOL' +  hasil.toString());
-                                                    // updateAda(index, value, konteksUpdate);
-                                                    if (value == null ||
-                                                        value.isEmpty) {
+                                                    update(index, value,
+                                                        konteksUpdate);
+                                                   updateAda(index, value, konteksUpdate);
+                                                    print('FULBT' +
+                                                        fileUsed.toString());
+                                                    if (value == null || value.isEmpty) {
                                                       return 'Masukan Nama Kategori Baru';
-                                                    } else {
-                                                      if (hasil == true) {
-                                                        // print('JAWABAN' +
-                                                        //     adaFile.toString());
-                                                        return outputValidasi;
-                                                        print('JAWABAN' + hasil.toString());
-                                                      } else if (hasil != true) {
-                                                        return null;
-                                                      }
+                                                    } else if (hasil == true) {
+                                                      return outputValidasi;
+                                                    } else if (hasil != true) {
+                                                      return null;
+                                                    }else if (fileUsed==true){
+                                                      return "Kategori sedang digunakan";
                                                     }
                                                     return null;
                                                   },
@@ -393,9 +374,7 @@ class TaskList extends StatelessWidget {
                                                     child: RaisedButton(
                                                       child: Text("Batal"),
                                                       onPressed: () {
-                                                        Navigator.of(
-                                                                konteksUpdate)
-                                                            .pop();
+                                                        Navigator.of(konteksUpdate).pop();
                                                       },
                                                     ),
                                                   ),
@@ -455,7 +434,8 @@ class TaskList extends StatelessWidget {
                                                                 Colors.white),
                                                       ),
                                                       onPressed: () {
-                                                      deleteKategori(index, deleteKonteks);
+                                                        deleteKategori(index,
+                                                            deleteKonteks);
                                                         if (adaFile == true) {
                                                           Navigator.of(
                                                                   deleteKonteks)
@@ -469,11 +449,8 @@ class TaskList extends StatelessWidget {
                                                                   konteks)
                                                               .showSnackBar(
                                                                   snackBar);
-                                                        } else {
-
-                                                        }
+                                                        } else {}
                                                         return null;
-                                                        ;
                                                       },
                                                     ),
                                                   ),

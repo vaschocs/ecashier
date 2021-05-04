@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ecashier/side_drawer.dart';
 import 'package:ecashier/Barang/kelolaBarang.dart';
+import 'package:ecashier/Restock/kelolaRestock.dart';
 
 void main() => runApp(MyApp());
 
@@ -94,7 +95,7 @@ class HomePage extends StatelessWidget {
                         child: InkWell(
                           splashColor: Colors.green, // splash color
                           onTap: () {
-                            Navigator.pushReplacement(
+                            Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => KelolaBarangPage(),
@@ -119,7 +120,13 @@ class HomePage extends StatelessWidget {
                         color: Colors.white60, // button color
                         child: InkWell(
                           splashColor: Colors.green, // splash color
-                          onTap: () {}, // button pressed
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => KelolaRestockPage(),
+                                ));
+                          }, // button pressed
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
@@ -213,26 +220,7 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox.fromSize(
-                    size: Size(195, 130), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        color: Colors.white60, // button color
-                        child: InkWell(
-                          splashColor: Colors.green, // splash color
-                          onTap: () {}, // button pressed
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.cancel_sharp),
-                              Text(" "), // icon
-                              Text("Retur"), // text
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+
 
                 ],
               ),

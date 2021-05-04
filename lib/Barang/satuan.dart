@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// ignore: must_be_immutable
 class SatuanPage extends StatefulWidget {
   SatuanPage({this.namaSatuan});
   String namaSatuan;
@@ -56,6 +57,7 @@ class _SatuanPageState extends State<SatuanPage> {
     namaSatuan.text = '';
   }
 
+  // ignore: missing_return
   Future<bool> doesNameAlreadyExist() async {
     final QuerySnapshot result = await Firestore.instance
         .collection('satuan')
@@ -161,6 +163,7 @@ class _SatuanPageState extends State<SatuanPage> {
   }
 }
 
+// ignore: must_be_immutable
 class TaskList extends StatelessWidget {
   TaskList({this.document});
 
@@ -187,6 +190,7 @@ class TaskList extends StatelessWidget {
     }
   }
 
+  // ignore: missing_return
   Future<bool> doesNameAlreadyExist(index, editSatuan) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('satuan')
@@ -216,7 +220,7 @@ class TaskList extends StatelessWidget {
           int i,
           ) {
         String namaSatuan = document[i].data['namaSatuan'].toString();
-        String idSatuan = document[i].data['idSatuan'].toString();
+        // String idSatuan = document[i].data['idSatuan'].toString();
         TextEditingController editSatuan =
         TextEditingController(text: namaSatuan);
         final index = document[i].reference;

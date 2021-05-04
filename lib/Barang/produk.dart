@@ -94,9 +94,9 @@ class TaskList extends StatelessWidget {
         String imgBarang = document[i].data['imgBarang'].toString();
         String satuan = document[i].data['satuan'].toString();
 
-        TextEditingController editKategori;
+        // TextEditingController editKategori;
 
-        final index = document[i].reference;
+        // final index = document[i].reference;
 
         return new Padding(
           padding: const EdgeInsets.all(5.0),

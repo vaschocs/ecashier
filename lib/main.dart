@@ -1,9 +1,9 @@
-import 'package:ecashier/splashscreen.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'dart:async';
+// import 'dart:async';
 
 void main() => runApp(new MyApp());
 
@@ -33,41 +33,41 @@ class _MyLoginState extends State<MyLogin> {
 
   String info = "";
 
-  void doLogin() {
-    _signIn().then((FirebaseUser user) {
-      // setState(() {
-      //   Navigator.of(context).pushReplacement(
-      //     MaterialPageRoute(builder: (_) {
-      //       return SplashScreenPage();
-      //     }),
-      //   );
-      // });
-      setState(() {
-        info = "${user.displayName}(${user.email})";
-      });
-    }).catchError((e) => print(e.toString()));
-  }
+  // void doLogin() {
+  //   _signIn().then((FirebaseUser user) {
+  //     // setState(() {
+  //     //   Navigator.of(context).pushReplacement(
+  //     //     MaterialPageRoute(builder: (_) {
+  //     //       return SplashScreenPage();
+  //     //     }),
+  //     //   );
+  //     // });
+  //     setState(() {
+  //       info = "${user.displayName}(${user.email})";
+  //     });
+  //   }).catchError((e) => print(e.toString()));
+  // }
 
 
-  Future<FirebaseUser> _signIn() async {
-    GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
-    GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount
-        .authentication;
-
-    AuthCredential credential = GoogleAuthProvider.getCredential(
-        idToken: googleSignInAuthentication.idToken,
-        accessToken: googleSignInAuthentication.accessToken
-    );
-
-    FirebaseUser user = (await FirebaseAuth.instance.signInWithCredential(
-        credential)).user;
-    return Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) {
-          return SplashScreenPage();
-        }
-        )
-    );
-  }
+  // Future<FirebaseUser> _signIn() async {
+  //   GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
+  //   GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount
+  //       .authentication;
+  //
+  //   AuthCredential credential = GoogleAuthProvider.getCredential(
+  //       idToken: googleSignInAuthentication.idToken,
+  //       accessToken: googleSignInAuthentication.accessToken
+  //   );
+  //
+  //   FirebaseUser user = (await FirebaseAuth.instance.signInWithCredential(
+  //       credential)).user;
+  //   return Navigator.of(context).pushReplacement(
+  //       MaterialPageRoute(builder: (_) {
+  //         return SplashScreenPage();
+  //       }
+  //       )
+  //   );
+  // }
 
     @override
     Widget build(BuildContext context) {
@@ -81,7 +81,7 @@ class _MyLoginState extends State<MyLogin> {
 
               new InkWell(
                 onTap: () {
-                  _signIn();
+                  // _signIn();
                 },
                 child: new Image.asset("assets/images/signin.png", width: 250,),
 

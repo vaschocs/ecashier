@@ -43,10 +43,11 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  // ignore: missing_return
   Future<bool> cek(String value) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('barang')
-        .where('namaBarang', isEqualTo: namaBarang.text)
+        .where('namaBarang', isEqualTo: value)
         .limit(1)
         .getDocuments();
     final List<DocumentSnapshot> documents = result.documents;
@@ -125,6 +126,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                         return 'Masukan Nama Kategori';
                       } else {
                         cek(namaBarang);
+
                         if (sama == true) {
                           return outputValidasi;
                         } else if (sama == false) {
@@ -152,10 +154,10 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                           DocumentSnapshot snap = snapshot.data.documents[i];
                           kategoriItems.add(DropdownMenuItem(
                             child: Text(
-                              snap.documentID,
+                              snap.data['namaKategori'],
                               style: TextStyle(color: Colors.black),
                             ),
-                            value: "${snap.documentID}",
+                            value: "${snap.data['namaKategori']}",
                           ));
                         }
                         return Container(
