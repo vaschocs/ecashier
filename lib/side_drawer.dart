@@ -1,4 +1,5 @@
 import 'package:ecashier/Restock/kelolaRestock.dart';
+import 'package:ecashier/Transaksi/transaksi.dart';
 import 'package:ecashier/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +79,15 @@ class SideDrawerState extends State<SideDrawer>{
             leading: Icon(Icons.compare_arrows_sharp),
             title: Text('Pergerakan Barang'),
             onTap: () => {Navigator.of(context).pop()},
+          ),
+          ListTile(
+            leading: Icon(Icons.attach_money),
+            title: Text('Transaksi'),
+            onTap: () =>{Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TransaksiPage(),
+                ))},
           ),
           ListTile(
             leading: Icon(Icons.logout),

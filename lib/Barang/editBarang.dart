@@ -100,6 +100,21 @@ class _EditBarangPageState extends State<EditBarangPage> {
     indeks = widget.index;
   }
 
+  Future<bool> deleteBarang(DocumentReference index, BuildContext deleteKonteks) async {
+      Firestore.instance.runTransaction((transaction) async {
+        // final snackBar = SnackBar(
+        DocumentSnapshot snapshot = await transaction.get(index);
+        await transaction.delete(snapshot.reference);
+
+        Navigator.of(deleteKonteks).pop();
+
+        final snackBar =
+        SnackBar(content: Text('Kategori ' ' berhasil dihapus'));
+        ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+      });
+  }
+
+
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: SideDrawer(),
@@ -116,7 +131,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: SizedBox.fromSize(
-                  size: Size(400, 30), // button width and height
+                  size: Size(1500, 50), // button width and height
                   child: ClipRect(
                     child: Material(
                       color: Colors.green,
@@ -128,7 +143,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                             "Produk",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 20,
+                                fontSize: 30,
                                 color: Colors.white),
                           ), // text
                         ],
@@ -142,25 +157,10 @@ class _EditBarangPageState extends State<EditBarangPage> {
                 child: TextFormField(
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                      border: OutlineInputBorder(), labelText: 'Nama Barang'),
+                      border: OutlineInputBorder(), labelText: 'Nama Barang',),
                   autofocus: true,
                   controller: controllerNama,
-                  validator: (value) {
-                    // if (value == null || value.isEmpty) {
-                    //                     //   return 'Masukan Nama Kategori Baru';
-                    //                     // } else {
-                    //                     //   cek(value, konteksAdd);
-                    //                     //   if (sama) {
-                    //                     //     return outputValidasi;
-                    //                     //   } else if (!sama) {
-                    //                     //     setState(() {
-                    //                     //       value = '';
-                    //                     //     });
-                    //                     //     return null;
-                    //                     //   }
-                    //                     // }
-                    //                     // return null;
-                  },
+                  validator: (value) {},
                 ),
               ),
               StreamBuilder<QuerySnapshot>(
@@ -238,7 +238,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: SizedBox.fromSize(
-                  size: Size(400, 30), // button width and height
+                  size: Size(1500, 50), // button width and height
                   child: ClipRect(
                     child: Material(
                       color: Colors.green,
@@ -250,7 +250,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                             "Stok",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 20,
+                                fontSize: 30,
                                 color: Colors.white),
                           ), // text
                         ],
@@ -289,10 +289,9 @@ class _EditBarangPageState extends State<EditBarangPage> {
                         ));
                       }
                       return Container(
-                        width: 400.0,
                         child: Padding(
                           padding:
-                              EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                           child: DropdownButtonFormField(
                             decoration: InputDecoration(
                                 border: OutlineInputBorder(),
@@ -301,7 +300,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                             items: satuanItems,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Satuan Barang Wajib Diisi';
+                                return 'Satuan barang wajib diisi';
                               }
                               return null;
                             },
@@ -330,15 +329,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: RaisedButton(
-                  onPressed: () async {
-                    // await doesNameAlreadyExist();
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => KelolaBarangPage(),
-                    //   ),
-                    // );
-                  },
+                  onPressed: () async {},
                   color: Colors.green,
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
@@ -348,7 +339,31 @@ class _EditBarangPageState extends State<EditBarangPage> {
                         Text(
                           'Submit',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                child: RaisedButton(
+                  onPressed: () async {},
+                  color: Colors.redAccent,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          'Hapus',
+                          style: TextStyle(
+                            fontSize: 30,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),

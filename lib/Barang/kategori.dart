@@ -1,16 +1,17 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 BuildContext konteks;
-// TextEditingController editKategori;
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Add kategori',
+      title: 'Kelola Kategori',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -100,74 +101,96 @@ class _KategoriPageState extends State<KategoriPage> {
               context: context,
               builder: (BuildContext konteksAdd) {
                 return AlertDialog(
+                  title: Text('Edit Kategori'),
                   content: Stack(
                     // ignore: deprecated_member_use
                     overflow: Overflow.visible,
                     children: <Widget>[
                       Form(
                         key: _formKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: 1),
-                              child: TextFormField(
-                                textCapitalization: TextCapitalization.words,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Nama Kategori',
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Masukan Nama Kategori Baru';
-                                  } else {
-                                    cek(value, konteksAdd);
-                                    if (sama) {
-                                      return outputValidasi;
-                                    } else if (!sama) {
-                                      setState(() {
-                                        value = '';
-                                      });
-                                      return null;
-                                    }
-                                  }
-                                  return null;
-                                },
-                                controller: namaKategori,
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: RaisedButton(
-                                    color: Colors.green,
-                                    child: Text(
-                                      "Simpan",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    onPressed: () async {
-                                      if (_formKey.currentState.validate()) ;
-                                    },
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: RaisedButton(
-                                    child: Text("Batal"),
-                                    onPressed: () {
-                                      Navigator.of(konteksAdd).pop();
-                                      setState(() {
-                                        namaKategori.text = '';
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                       child: Container(
+                         margin: const EdgeInsets.all(10.0),
+                         color: Colors.white,
+                         height: 150,
+                         width: 400,
+                         child: Column(
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: <Widget>[
+                             Padding(
+                               padding: EdgeInsets.symmetric(vertical: 1),
+                               child: TextFormField(
+                                 textCapitalization: TextCapitalization.words,
+                                 decoration: InputDecoration(
+                                   border: OutlineInputBorder(),
+                                   labelText: 'Nama Kategori',
+                                 ),
+                                 validator: (value) {
+                                   if (value == null || value.isEmpty) {
+                                     return 'Masukan Nama Kategori Baru';
+                                   } else {
+                                     cek(value, konteksAdd);
+                                     if (sama) {
+                                       return outputValidasi;
+                                     } else if (!sama) {
+                                       setState(() {
+                                         value = '';
+                                       });
+                                       return null;
+                                     }
+                                   }
+                                   return null;
+                                 },
+                                 controller: namaKategori,
+                               ),
+                             ),
+                             Row(
+                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                               children: <Widget>[
+                                 Padding(
+                                   padding: const EdgeInsets.all(8.0),
+                                   child: SizedBox(
+                                     height: 50,
+                                     width: 180,
+                                     child: RaisedButton(
+                                       color: Colors.green,
+                                       child: Text(
+                                         "Simpan",
+                                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
+                                       ),
+                                       onPressed: () async {
+                                         if (_formKey.currentState.validate()) ;
+                                       },
+                                     ),
+                                   ),
+                                 ),
+                                 Padding(
+                                   padding: const EdgeInsets.all(8.0),
+                                   child: SizedBox(
+                                     height: 50,
+                                     width: 180,
+                                     child: RaisedButton(
+                                       child: Text("Batal",style: TextStyle(
+                                           fontWeight: FontWeight
+                                               .bold,
+                                           fontSize:
+                                           20,
+                                           color:
+                                           Colors.black)),
+                                       onPressed: () {
+                                         Navigator.of(konteksAdd).pop();
+                                         setState(() {
+                                           namaKategori.text = '';
+                                         });
+                                       },
+                                     ),
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           ],
+                         ),
+
+                       ),
                       ),
                     ],
                   ),
@@ -208,6 +231,11 @@ class TaskList extends StatelessWidget {
         await transaction.update(snapshot.reference, {"namaKategori": value});
       });
 
+      Firestore.instance.runTransaction((Transaction transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(index);
+        await transaction.update(snapshot.reference, {"namaKategori": value});
+      });
+
       Navigator.of(konteksUpdate).pop();
 
       final snackBar = SnackBar(content: Text('Nama Kategori berhasil diubah'));
@@ -229,19 +257,11 @@ class TaskList extends StatelessWidget {
         int i,
       ) {
         String namaKategori = document[i].data['namaKategori'].toString();
-        TextEditingController editKategori = TextEditingController(text: namaKategori);
+        TextEditingController editKategori =
+            TextEditingController(text: namaKategori);
         final index = document[i].reference;
 
-        Future<bool> updateAda(DocumentReference index, String value, BuildContext konteksUpdate) async {
-          final QuerySnapshot result = await Firestore.instance
-              .collection('barang')
-              .where('kategoriBarang', isEqualTo: value)
-              .getDocuments();
-          final List<DocumentSnapshot> documents = await result.documents;
-          if(documents.length>=0){
-            fileUsed = true;
-          }
-        }
+
 
         // ignore: missing_return
         Future<bool> deleteKategori(
@@ -304,83 +324,97 @@ class TaskList extends StatelessWidget {
                                 context: context,
                                 builder: (BuildContext konteksUpdate) {
                                   return AlertDialog(
+                                    title: Text("Edit Kategori"),
                                     content: Stack(
                                       // ignore: deprecated_member_use
                                       overflow: Overflow.visible,
                                       children: <Widget>[
                                         Form(
                                           key: _formKey,
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: <Widget>[
-                                              Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    vertical: 1),
-                                                child: TextFormField(
-                                                  textCapitalization:
-                                                      TextCapitalization.words,
-                                                  decoration: InputDecoration(
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                    labelText: 'Nama Kategori',
+                                          child: Container(
+                                            height: 150,
+                                            width: 400,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: <Widget>[
+                                                Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                      vertical: 1),
+                                                  child: TextFormField(
+                                                    textCapitalization:
+                                                    TextCapitalization.words,
+                                                    decoration: InputDecoration(
+                                                      border:
+                                                      OutlineInputBorder(),
+                                                      labelText: 'Nama Kategori',
+                                                    ),
+                                                    validator: (value) {
+                                                      update(index, value, konteksUpdate);
+                                                      if (value == null || value.isEmpty) {
+                                                        return 'Masukan Nama Kategori Baru';
+                                                      } else if (hasil == true) {
+                                                        return outputValidasi;
+                                                      } else {
+                                                        return null;
+                                                      }
+
+                                                    },
+                                                    controller: editKategori,
                                                   ),
-                                                  validator: (value) {
-                                                    update(index, value,
-                                                        konteksUpdate);
-                                                   updateAda(index, value, konteksUpdate);
-                                                    print('FULBT' +
-                                                        fileUsed.toString());
-                                                    if (value == null || value.isEmpty) {
-                                                      return 'Masukan Nama Kategori Baru';
-                                                    } else if (hasil == true) {
-                                                      return outputValidasi;
-                                                    } else if (hasil != true) {
-                                                      return null;
-                                                    }else if (fileUsed==true){
-                                                      return "Kategori sedang digunakan";
-                                                    }
-                                                    return null;
-                                                  },
-                                                  controller: editKategori,
                                                 ),
-                                              ),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: <Widget>[
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: RaisedButton(
-                                                      color: Colors.green,
-                                                      child: Text(
-                                                        "Simpan",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                                  children: <Widget>[
+                                                    Padding(
+                                                      padding:
+                                                      const EdgeInsets.all(
+                                                          8.0),
+                                                      child: SizedBox(
+                                                        height: 50,
+                                                        width: 180,
+                                                        child: RaisedButton(
+                                                          color: Colors.green,
+                                                          child: Text("Edit", style: TextStyle(
+                                                              fontWeight: FontWeight
+                                                                  .bold,
+                                                              fontSize:
+                                                              20,
+                                                              color:
+                                                              Colors.white),),
+                                                          onPressed: () async {
+                                                            if (_formKey.currentState.validate());
+                                                          },
+                                                        ),
                                                       ),
-                                                      onPressed: () async {
-                                                        if (_formKey
-                                                            .currentState
-                                                            .validate()) ;
-                                                      },
                                                     ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: RaisedButton(
-                                                      child: Text("Batal"),
-                                                      onPressed: () {
-                                                        Navigator.of(konteksUpdate).pop();
-                                                      },
+                                                    Padding(
+                                                      padding:
+                                                      const EdgeInsets.all(
+                                                          8.0),
+                                                      child: SizedBox(
+                                                        height: 50,
+                                                        width: 180,
+                                                        child: RaisedButton(
+                                                          child: Text("Batal",style: TextStyle(
+                                                              fontWeight: FontWeight
+                                                                  .bold,
+                                                              fontSize:
+                                                              20,
+                                                              color:
+                                                              Colors.black)),
+                                                          onPressed: () {
+                                                            Navigator.of(
+                                                                konteksUpdate)
+                                                                .pop();
+                                                          },
+                                                        ),
+                                                      ),
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -413,8 +447,12 @@ class TaskList extends StatelessWidget {
                                                     namaKategori +
                                                     "?",
                                                 style: TextStyle(
-                                                    fontWeight:
-                                                        FontWeight.bold),
+                                                    fontWeight: FontWeight
+                                                        .bold,
+                                                    fontSize:
+                                                    30,
+                                                    color:
+                                                    Colors.black),
                                               ),
                                             ),
                                             Row(
@@ -425,46 +463,64 @@ class TaskList extends StatelessWidget {
                                                     padding:
                                                         const EdgeInsets.all(
                                                             8.0),
-                                                    child: RaisedButton(
-                                                      color: Colors.green,
-                                                      child: Text(
-                                                        "Hapus",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white),
+                                                    child: SizedBox(
+                                                      height: 50,
+                                                      width: 180,
+                                                      child: RaisedButton(
+                                                        color: Colors.green,
+                                                        child: Text(
+                                                          "Hapus",
+                                                          style: TextStyle(
+                                                              fontWeight: FontWeight
+                                                                  .bold,
+                                                              fontSize:
+                                                              30,
+                                                              color:
+                                                              Colors.white),
+                                                        ),
+                                                        onPressed: () {
+                                                          deleteKategori(index,
+                                                              deleteKonteks);
+                                                          if (adaFile == true) {
+                                                            Navigator.of(
+                                                                deleteKonteks)
+                                                                .pop();
+                                                            final snackBar = SnackBar(
+                                                                content: Text(
+                                                                    'Kategori ' +
+                                                                        namaKategori +
+                                                                        ' tidak dapat dihapus karna berkaitan dengan barang yang ada'));
+                                                            ScaffoldMessenger.of(
+                                                                konteks)
+                                                                .showSnackBar(
+                                                                snackBar);
+                                                          } else {}
+                                                          return null;
+                                                        },
                                                       ),
-                                                      onPressed: () {
-                                                        deleteKategori(index,
-                                                            deleteKonteks);
-                                                        if (adaFile == true) {
-                                                          Navigator.of(
-                                                                  deleteKonteks)
-                                                              .pop();
-                                                          final snackBar = SnackBar(
-                                                              content: Text(
-                                                                  'Kategori ' +
-                                                                      namaKategori +
-                                                                      ' tidak dapat dihapus karna berkaitan dengan barang yang ada'));
-                                                          ScaffoldMessenger.of(
-                                                                  konteks)
-                                                              .showSnackBar(
-                                                                  snackBar);
-                                                        } else {}
-                                                        return null;
-                                                      },
                                                     ),
                                                   ),
                                                   Padding(
                                                     padding:
                                                         const EdgeInsets.all(
                                                             8.0),
-                                                    child: RaisedButton(
-                                                      child: Text("Batal"),
-                                                      onPressed: () {
-                                                        Navigator.of(
-                                                                deleteKonteks)
-                                                            .pop();
-                                                      },
+                                                    child: SizedBox(
+                                                      height: 50,
+                                                      width: 180,
+                                                      child: RaisedButton(
+                                                        child: Text("Batal",style: TextStyle(
+                                                            fontWeight: FontWeight
+                                                                .bold,
+                                                            fontSize:
+                                                            30,
+                                                            color:
+                                                            Colors.black)),
+                                                        onPressed: () {
+                                                          Navigator.of(
+                                                              deleteKonteks)
+                                                              .pop();
+                                                        },
+                                                      ),
                                                     ),
                                                   ),
                                                 ]),

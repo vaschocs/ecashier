@@ -37,9 +37,9 @@ class KelolaBarangPage extends StatelessWidget {
           appBar: AppBar(
             bottom: TabBar(
               tabs: [
-                Tab(text: 'Produk'),
+                Tab(text: 'Produk',),
                 Tab(text: 'Kategori'),
-                // Tab(text: 'Satuan')
+
               ],
             ),
             title: Text('Kelola Produk'),

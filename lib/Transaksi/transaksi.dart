@@ -1,4 +1,4 @@
-import 'package:ecashier/Transaksi/transaksi.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ecashier/side_drawer.dart';
@@ -16,12 +16,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: TransaksiPage(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
+class TransaksiPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +35,7 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 5),
+              padding: EdgeInsets.symmetric(vertical: 10),
               child: RaisedButton(
                 shape: RoundedRectangleBorder(
                     side: BorderSide(width: 2, color: Colors.green)),
@@ -86,10 +86,10 @@ class HomePage extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(vertical: 10),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   SizedBox.fromSize(
-                    size: Size(400, 300), // button width and height
+                    size: Size(195, 170), // button width and height
                     child: ClipRect(
                       child: Material(
                         shape: RoundedRectangleBorder(
@@ -113,10 +113,7 @@ class HomePage extends StatelessWidget {
                             children: <Widget>[
                               Icon(Icons.shopping_basket),
                               Text(" "), // icon
-                              Text("Kelola Produk",style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black)), // text
+                              Text("Kelola Produk"), // text
                             ],
                           ),
                         ),
@@ -124,11 +121,13 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   SizedBox.fromSize(
-                    size: Size(400, 300), // button width and height
+                    size: Size(195, 170), // button width and height
                     child: ClipRect(
                       child: Material(
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(),
+                            borderRadius: BorderRadius.only(
+                                bottomRight: Radius.circular(10),
+                                topRight: Radius.circular(10)),
                             side: BorderSide(width: 2, color: Colors.green)),
                         color: Colors.white60, // button color
                         child: InkWell(
@@ -145,38 +144,7 @@ class HomePage extends StatelessWidget {
                             children: <Widget>[
                               Icon(Icons.add_shopping_cart_sharp),
                               Text(" "), // icon
-                              Text("Tambah Stok",style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black)), // text
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox.fromSize(
-                    size: Size(400, 300), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                bottomRight: Radius.circular(10),
-                                topRight: Radius.circular(10)),
-                            side: BorderSide(width: 2, color: Colors.green)),
-                        color: Colors.white60, // button color
-                        child: InkWell(
-                          splashColor: Colors.green, // splash color
-                          onTap: () {}, // button pressed
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.file_copy),
-                              Text(" "), // icon
-                              Text("Laporan",style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black)), // text
+                              Text("Tambah Stok"), // text
                             ],
                           ),
                         ),
@@ -187,12 +155,13 @@ class HomePage extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 5),
+              padding: EdgeInsets.symmetric(vertical: 10),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   SizedBox.fromSize(
-                    size: Size(400, 300), // button width and height
+                    size: Size(195, 170
+                    ), // button width and height
                     child: ClipRect(
                       child: Material(
                         shape: RoundedRectangleBorder(
@@ -207,12 +176,9 @@ class HomePage extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
-                              Icon(Icons.compare_arrows_sharp),
+                              Icon(Icons.file_copy),
                               Text(" "), // icon
-                              Text("Pergerakan Barang",style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black)), // text
+                              Text("Laporan"), // text
                             ],
                           ),
                         ),
@@ -220,11 +186,46 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   SizedBox.fromSize(
-                    size: Size(400, 300), // button width and height
+                    size: Size(195, 170), // button width and height
                     child: ClipRect(
                       child: Material(
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(),
+                            borderRadius: BorderRadius.only(
+                                bottomRight: Radius.circular(10),
+                                topRight: Radius.circular(10)),
+                            side: BorderSide(width: 2, color: Colors.green)),
+                        color: Colors.white60, // button color
+                        child: InkWell(
+                          splashColor: Colors.green, // splash color
+                          onTap: () {}, // button pressed
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Icon(Icons.compare_arrows_sharp),
+                              Text(" "), // icon
+                              Text("Pergerakan Barang"), // text
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  SizedBox.fromSize(
+                    size: Size(195, 170), // button width and height
+                    child: ClipRect(
+                      child: Material(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(10),
+                                topLeft: Radius.circular(10)),
                             side: BorderSide(width: 2, color: Colors.green)),
                         color: Colors.white60, // button color
                         child: InkWell(
@@ -235,10 +236,7 @@ class HomePage extends StatelessWidget {
                             children: <Widget>[
                               Icon(Icons.history),
                               Text(" "), // icon
-                              Text("History",style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black)), // text
+                              Text("History"), // text
                             ],
                           ),
                         ),
@@ -246,7 +244,7 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   SizedBox.fromSize(
-                    size: Size(400, 300), // button width and height
+                    size: Size(195, 170), // button width and height
                     child: ClipRect(
                       child: Material(
                         shape: RoundedRectangleBorder(
@@ -267,10 +265,7 @@ class HomePage extends StatelessWidget {
                             children: <Widget>[
                               Icon(Icons.attach_money),
                               Text(" "), // icon
-                              Text("Transaksi",style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.black)), // text
+                              Text("Transaksi"), // text
                             ],
                           ),
                         ),

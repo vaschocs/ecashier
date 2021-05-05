@@ -38,7 +38,7 @@ class KelolaRestockPage extends StatelessWidget {
             bottom: TabBar(
               tabs: [
                 Tab(text: 'Restock'),
-                Tab(text: 'Riwayat'),
+                Tab(text: 'Riwayat Stok'),
 
               ],
             ),

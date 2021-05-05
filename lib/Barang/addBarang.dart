@@ -3,6 +3,7 @@ import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 import 'package:flutter/services.dart';
 
@@ -41,10 +42,13 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
   TextEditingController satuan = TextEditingController();
   TextEditingController minStok = TextEditingController();
 
+
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   // ignore: missing_return
   Future<bool> cek(String value) async {
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
     final QuerySnapshot result = await Firestore.instance
         .collection('barang')
         .where('namaBarang', isEqualTo: value)
@@ -64,6 +68,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
         'jmlStok': jmlStok.text,
         'satuan': selectedSatuan,
         'minStok': minStok.text,
+        'waktu' : formattedDate,
       });
 
       namaBarang.text = '';
@@ -92,7 +97,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   child: SizedBox.fromSize(
-                    size: Size(400, 30), // button width and height
+                    size: Size(1500, 50), // button width and height
                     child: ClipRect(
                       child: Material(
                         color: Colors.green,
@@ -104,7 +109,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                               "Produk",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 20,
+                                  fontSize: 30,
                                   color: Colors.white),
                             ), // text
                           ],
@@ -161,10 +166,9 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                           ));
                         }
                         return Container(
-                          width: 400.0,
                           child: Padding(
                             padding: EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 5),
+                                vertical: 10, horizontal: 10),
                             child: DropdownButtonFormField(
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
@@ -230,7 +234,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   child: SizedBox.fromSize(
-                    size: Size(400, 30), // button width and height
+                    size: Size(1500, 50), // button width and height
                     child: ClipRect(
                       child: Material(
                         color: Colors.green,
@@ -242,7 +246,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                               "Stok",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 20,
+                                  fontSize: 30,
                                   color: Colors.white),
                             ), // text
                           ],
@@ -289,7 +293,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                           ));
                         }
                         return Container(
-                          width: 400.0,
+
                           child: Padding(
                             padding: EdgeInsets.symmetric(
                                 vertical: 10, horizontal: 5),

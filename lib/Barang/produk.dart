@@ -119,13 +119,10 @@ class TaskList extends StatelessWidget {
                       )
                     ));
                   },
-                  leading: SizedBox(
-                    height: 30.0,
-                  width: 40.0,
-                  child: Image(image: AssetImage (imgBarang)),),
+                  leading: Icon(Icons.format_list_bulleted),
                   title: Text(namaBarang, style: TextStyle(fontSize: 20),),
-                subtitle: Text(hjBarang, style: TextStyle(fontSize: 18),),
-                trailing: Text(jmlStok, style: TextStyle(fontSize: 20),),
+                subtitle: Text('Rp. '+ hjBarang, style: TextStyle(fontSize: 18),),
+                trailing: Text('Stok : ' + jmlStok, style: TextStyle(fontSize: 20),),
                 )
 
                 ),

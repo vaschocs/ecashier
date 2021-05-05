@@ -73,17 +73,16 @@ class TaskList extends StatelessWidget {
     return null;
   }
 
-  Future<bool> add(DocumentReference index, int stokNow, String namaBarang) async {
+  Future<bool> add(
+      DocumentReference index, int stokNow, String namaBarang) async {
     int addStok = int.tryParse(tambahStok.text);
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
     Firestore.instance.collection("riwayatRestock").document().setData({
-       'namaBarang': namaBarang,
-       'tambahStok': addStok,
-       'waktu': formattedDate,
-
-     });
-
+      'namaBarang': namaBarang,
+      'tambahStok': addStok,
+      'waktu': formattedDate,
+    });
 
     return null;
   }
@@ -95,6 +94,7 @@ class TaskList extends StatelessWidget {
       itemCount: document.length,
       itemBuilder: (BuildContext context, int i) {
         String namaBarang = document[i].data['namaBarang'].toString();
+        String satuanBarang = document[i].data['satuan'].toString();
         String jmlStok = document[i].data['jmlStok'].toString();
         String imgBarang = document[i].data['imgBarang'].toString();
         final index = document[i].reference;
@@ -113,142 +113,184 @@ class TaskList extends StatelessWidget {
                           context: context,
                           builder: (BuildContext konteksUpdate) {
                             return AlertDialog(
+                              title: Text('Tambah Stok'),
                               content: Stack(
                                 // ignore: deprecated_member_use
                                 overflow: Overflow.visible,
                                 children: <Widget>[
                                   Form(
                                     key: _formKey,
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        Padding(
-                                          padding:
-                                              EdgeInsets.symmetric(vertical: 1),
-                                          child: TextFormField(
-                                            validator: (value){
-                                              if (value == null || value.isEmpty) {
-                                                return 'Masukan jumlah stok';
-                                              }else{
-                                                showDialog(
-                                                    context: context,
-                                                    builder: (BuildContext konteksUpdate2) {
-                                                      new TaskList();
-                                                      return AlertDialog(
-                                                        content: Stack(
-                                                          // ignore: deprecated_member_use
-                                                          overflow: Overflow.visible,
-                                                          children: <Widget>[
-                                                            Column(
-                                                              mainAxisSize: MainAxisSize.min,
-                                                              children: <Widget>[
-                                                                Padding(
-                                                                  padding:
-                                                                  const EdgeInsets.all(8.0),
-                                                                  child: Text(
-                                                                    "Apakah benar anda ingin menambah Stok Barang " +
-                                                                        namaBarang + ' sebanyak ' + tambahStok.text +
-                                                                        " ?",
-                                                                    style: TextStyle(
-                                                                        fontWeight:
-                                                                        FontWeight.bold),
+                                    child: Container(
+                                      height: 150,
+                                      width: 400,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 1),
+                                            child: TextFormField(
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Masukan jumlah stok';
+                                                } else {
+                                                  showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          konteksUpdate2) {
+                                                        new TaskList();
+                                                        return AlertDialog(
+                                                          content: Stack(
+                                                            // ignore: deprecated_member_use
+                                                            overflow: Overflow
+                                                                .visible,
+                                                            children: <Widget>[
+                                                              Column(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: <
+                                                                    Widget>[
+                                                                  Padding(
+                                                                    padding:
+                                                                        const EdgeInsets.all(
+                                                                            8.0),
+                                                                    child: Text(
+                                                                      "Apakah benar anda ingin menambah Stok Barang " +
+                                                                          namaBarang +
+                                                                          ' sebanyak ' +
+                                                                          tambahStok
+                                                                              .text+' '+satuanBarang +
+                                                                          " ?",
+                                                                      style: TextStyle(
+                                                                          fontWeight: FontWeight
+                                                                              .bold,
+                                                                          fontSize:
+                                                                              30,
+                                                                          color:
+                                                                              Colors.black),
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                                Row(
-                                                                    mainAxisAlignment:
-                                                                    MainAxisAlignment.center,
-                                                                    children: <Widget>[
-                                                                      Padding(
-                                                                        padding:
-                                                                        const EdgeInsets.all(
-                                                                            8.0),
-                                                                        child: RaisedButton(
-                                                                          color: Colors.green,
-                                                                          child: Text(
-                                                                            "Tambah",
-                                                                            style: TextStyle(
-                                                                                color:
-                                                                                Colors.white),
+                                                                  Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .center,
+                                                                      children: <
+                                                                          Widget>[
+                                                                        Padding(
+                                                                          padding:
+                                                                              const EdgeInsets.all(8.0),
+                                                                          child:
+                                                                              SizedBox(
+                                                                            height:
+                                                                                50,
+                                                                            width:
+                                                                                180,
+                                                                            child:
+                                                                                RaisedButton(
+                                                                              color: Colors.green,
+                                                                              child: Text("Tambah", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white)),
+                                                                              onPressed: () {
+                                                                                add(index, stokNow, namaBarang);
+                                                                                update(index, konteksUpdate, stokNow, namaBarang);
+                                                                                Navigator.of(konteksUpdate).pop();
+                                                                              },
+                                                                            ),
                                                                           ),
-                                                                          onPressed: () {
-                                                                            add(index, stokNow, namaBarang);
-                                                                            update(index, konteksUpdate, stokNow, namaBarang);
-                                                                            Navigator.of(konteksUpdate).pop();
-                                                                          },
                                                                         ),
-                                                                      ),
-                                                                      Padding(
-                                                                        padding:
-                                                                        const EdgeInsets.all(
-                                                                            8.0),
-                                                                        child: RaisedButton(
-                                                                          child: Text("Batal"),
-                                                                          onPressed: () {
-                                                                            Navigator.of(
-                                                                                konteksUpdate2)
-                                                                                .pop();
-                                                                          },
+                                                                        Padding(
+                                                                          padding:
+                                                                              const EdgeInsets.all(8.0),
+                                                                          child:
+                                                                              SizedBox(
+                                                                            height:
+                                                                                50,
+                                                                            width:
+                                                                                180,
+                                                                            child:
+                                                                                RaisedButton(
+                                                                              child: Text("Batal",style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 20,
+                                                        color: Colors.black)),
+                                                                              onPressed: () {
+                                                                                Navigator.of(konteksUpdate2).pop();
+                                                                              },
+                                                                            ),
+                                                                          ),
                                                                         ),
-                                                                      ),
-                                                                    ]),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      );
-                                                    });
-                                              }
-                                              return null;
-                                            },
-                                            textCapitalization:
-                                                TextCapitalization.words,
-                                            decoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText:
-                                                  'Tambah Stok ' + namaBarang,
+                                                                      ]),
+                                                                ],
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        );
+                                                      });
+                                                }
+                                                return null;
+                                              },
+                                              textCapitalization:
+                                                  TextCapitalization.words,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText:
+                                                    'Tambah Stok ' + namaBarang,
+                                              ),
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              inputFormatters: <
+                                                  TextInputFormatter>[
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly
+                                              ],
+                                              controller: tambahStok,
                                             ),
-                                            keyboardType: TextInputType.number,
-                                            inputFormatters: <
-                                                TextInputFormatter>[
-                                              FilteringTextInputFormatter
-                                                  .digitsOnly
-                                            ],
-                                            controller: tambahStok,
                                           ),
-                                        ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: <Widget>[
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: RaisedButton(
-                                                color: Colors.green,
-                                                child: Text(
-                                                  "Tambah",
-                                                  style: TextStyle(
-                                                      color: Colors.white),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: <Widget>[
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: SizedBox(
+                                                  height: 50,
+                                                  width: 180,
+                                                  child: RaisedButton(
+                                                    color: Colors.green,
+                                                    child: Text(
+                                                      "Tambah",
+                                                      style: TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                    onPressed: () async {
+                                                      if (_formKey.currentState
+                                                          .validate()) ;
+                                                    },
+                                                  ),
                                                 ),
-                                                onPressed: () async {
-                                                 if(_formKey.currentState.validate());
-                                                },
                                               ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: RaisedButton(
-                                                child: Text("Batal"),
-                                                onPressed: () {
-                                                  Navigator.of(konteksUpdate)
-                                                      .pop();
-                                                },
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: SizedBox(
+                                                  height: 50,
+                                                  width: 180,
+                                                  child: RaisedButton(
+                                                    child: Text("Batal"),
+                                                    onPressed: () {
+                                                      Navigator.of(
+                                                              konteksUpdate)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
