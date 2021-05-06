@@ -91,7 +91,7 @@ class TaskList extends StatelessWidget {
         String katBarang = document[i].data['kategoriBarang'].toString();
         String hbBarang = document[i].data['hbBarang'].toString();
         String jmlStok = document[i].data['jmlStok'].toString();
-        String imgBarang = document[i].data['imgBarang'].toString();
+
         String satuan = document[i].data['satuan'].toString();
 
         // TextEditingController editKategori;

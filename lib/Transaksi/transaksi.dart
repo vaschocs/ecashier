@@ -1,9 +1,10 @@
 
+
+import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ecashier/side_drawer.dart';
-import 'package:ecashier/Barang/kelolaBarang.dart';
-import 'package:ecashier/Restock/kelolaRestock.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -11,273 +12,151 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter login UI',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      debugShowCheckedModeBanner: false,
-      home: TransaksiPage(),
-    );
+        title: 'Transaksi',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: TransaksiPage(),
+        ));
   }
 }
 
-class TransaksiPage extends StatelessWidget {
+class TransaksiPage extends StatefulWidget {
+  @override
+  _TransaksiPageState createState() => _TransaksiPageState();
+}
+
+class _TransaksiPageState extends State<TransaksiPage> {
+  var selectedKategori;
+
+  String outputValidasi = "Nama Barang Sudah Terdaftar";
+
+  bool sama;
+
+  TextEditingController katBarang = TextEditingController();
+
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: SideDrawer(),
       appBar: AppBar(
-        title: Text('ECASHIER'),
+        title: Text('Tambah Produk'),
         backgroundColor: Colors.green,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: RaisedButton(
-                shape: RoundedRectangleBorder(
-                    side: BorderSide(width: 2, color: Colors.green)),
-                onPressed: () {},
-                color: Colors.white,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Icon(
-                        Icons.shopping_bag,
-                        color: Colors.black,
-                      ),
-                      Text(
-                        'Penjualan',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '                                          ',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        'Rp 0',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Icon(
-                        Icons.keyboard_arrow_right_sharp,
-                        color: Colors.black,
-                      )
-                    ],
-                  ),
+      body: Column(
+        children: <Widget>[
+          SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Container(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+
+                    StreamBuilder<QuerySnapshot>(
+                        stream:
+                        Firestore.instance.collection('kategori').snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return Text("Tidak bisa mendapatkan data");
+                          } else {
+                            List<DropdownMenuItem> kategoriItems = [];
+                            for (int i = 0;
+                            i < snapshot.data.documents.length;
+                            i++) {
+                              DocumentSnapshot snap = snapshot.data.documents[i];
+                              kategoriItems.add(DropdownMenuItem(
+                                child: Text(
+                                  snap.data['namaKategori'],
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                                value: "${snap.data['namaKategori']}",
+                              ));
+                            }
+                            return Container(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 10),
+                                child: DropdownButtonFormField(
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  value: selectedKategori,
+                                  items: kategoriItems,
+
+                                  onChanged: (kategoriValue) {
+                                    setState(() {
+                                      selectedKategori = kategoriValue;
+                                    });
+                                  },
+                                ),
+                              ),
+                            );
+                          }
+                        }),
+                  ],
                 ),
               ),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  SizedBox.fromSize(
-                    size: Size(195, 170), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(10),
-                                topLeft: Radius.circular(10)),
-                            side: BorderSide(width: 2, color: Colors.green)),
-                        color: Colors.white60,
-                        borderOnForeground: true, // button color
-                        child: InkWell(
-                          splashColor: Colors.green, // splash color
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => KelolaBarangPage(),
-                                ));
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.shopping_basket),
-                              Text(" "), // icon
-                              Text("Kelola Produk"), // text
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox.fromSize(
-                    size: Size(195, 170), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                bottomRight: Radius.circular(10),
-                                topRight: Radius.circular(10)),
-                            side: BorderSide(width: 2, color: Colors.green)),
-                        color: Colors.white60, // button color
-                        child: InkWell(
-                          splashColor: Colors.green, // splash color
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => KelolaRestockPage(),
-                                ));
-                          }, // button pressed
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.add_shopping_cart_sharp),
-                              Text(" "), // icon
-                              Text("Tambah Stok"), // text
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  SizedBox.fromSize(
-                    size: Size(195, 170
-                    ), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(10),
-                                topLeft: Radius.circular(10)),
-                            side: BorderSide(width: 2, color: Colors.green)),
-                        color: Colors.white60, // button color
-                        child: InkWell(
-                          splashColor: Colors.green, // splash color
-                          onTap: () {}, // button pressed
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.file_copy),
-                              Text(" "), // icon
-                              Text("Laporan"), // text
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox.fromSize(
-                    size: Size(195, 170), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                bottomRight: Radius.circular(10),
-                                topRight: Radius.circular(10)),
-                            side: BorderSide(width: 2, color: Colors.green)),
-                        color: Colors.white60, // button color
-                        child: InkWell(
-                          splashColor: Colors.green, // splash color
-                          onTap: () {}, // button pressed
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.compare_arrows_sharp),
-                              Text(" "), // icon
-                              Text("Pergerakan Barang"), // text
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  SizedBox.fromSize(
-                    size: Size(195, 170), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(10),
-                                topLeft: Radius.circular(10)),
-                            side: BorderSide(width: 2, color: Colors.green)),
-                        color: Colors.white60, // button color
-                        child: InkWell(
-                          splashColor: Colors.green, // splash color
-                          onTap: () {}, // button pressed
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.history),
-                              Text(" "), // icon
-                              Text("History"), // text
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox.fromSize(
-                    size: Size(195, 170), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                                bottomRight: Radius.circular(10),
-                                topRight: Radius.circular(10)),
-                            side: BorderSide(width: 2, color: Colors.green)),
-                        color: Colors.white60, // button color
-                        child: InkWell(
-                          splashColor: Colors.green, // splash color
-                          onTap: () =>{Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TransaksiPage(),
-                              ))},
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.attach_money),
-                              Text(" "), // icon
-                              Text("Transaksi"), // text
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+          // StreamBuilder(
+          //   stream: Firestore.instance.collection('riwayatRestock').snapshots(),
+          //   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          //     if (!snapshot.hasData)
+          //       return new Container(
+          //           child: Center(
+          //             child: CircularProgressIndicator(),
+          //           ));
+          //     return new TaskList(
+          //       document: snapshot.data.documents,
+          //     );
+          //   },
+          // ),
+        ],
+      )
     );
   }
 }
+class TaskList extends StatelessWidget {
+  TaskList({this.document});
+
+  final List<DocumentSnapshot> document;
+
+  @override
+  Widget build(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    return new ListView.builder(
+      itemCount: document.length,
+      itemBuilder: (BuildContext context, int i) {
+        String namaBarang = document[i].data['namaBarang'].toString();
+        String waktu = document[i].data['waktu'].toString();
+
+        return new Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Container(
+            color: Colors.white60,
+            child: Card(
+                shape: Border.all(color: Colors.green),
+                child: ListTile(
+                  onTap: () async {},
+                  leading: Icon(Icons.history),
+                  title: Text(
+                    'Nama Barang : ' + namaBarang,
+                    style: TextStyle(fontSize: 20),
+                  ),
+                  subtitle: Text(
+                    'Waktu : ' + waktu,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                )),
+          ),
+        );
+      },
+    );
+  }
+}
+

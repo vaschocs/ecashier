@@ -96,10 +96,11 @@ class TaskList extends StatelessWidget {
         String namaBarang = document[i].data['namaBarang'].toString();
         String satuanBarang = document[i].data['satuan'].toString();
         String jmlStok = document[i].data['jmlStok'].toString();
-        String imgBarang = document[i].data['imgBarang'].toString();
         final index = document[i].reference;
 
         int stokNow = int.parse(jmlStok);
+        TextEditingController showBarang = TextEditingController(text: namaBarang);
+        TextEditingController showStok = TextEditingController(text: jmlStok);
 
         return new Padding(
           padding: const EdgeInsets.all(5.0),
@@ -113,7 +114,7 @@ class TaskList extends StatelessWidget {
                           context: context,
                           builder: (BuildContext konteksUpdate) {
                             return AlertDialog(
-                              title: Text('Tambah Stok'),
+                              title: Text('Informasi Barang'),
                               content: Stack(
                                 // ignore: deprecated_member_use
                                 overflow: Overflow.visible,
@@ -121,11 +122,37 @@ class TaskList extends StatelessWidget {
                                   Form(
                                     key: _formKey,
                                     child: Container(
-                                      height: 150,
+                                      height: 400,
                                       width: 400,
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         children: <Widget>[
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 5),
+                                            child: TextFormField(
+                                              enabled: false,
+                                              textCapitalization:
+                                              TextCapitalization.words,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText:'Nama Barang',
+                                              ),
+                                              controller:showBarang,
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 5),
+                                            child: TextFormField(
+                                              enabled: false,
+                                              textCapitalization:
+                                              TextCapitalization.words,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText:'Jumlah Stok',
+                                              ),
+                                              controller:showStok,
+                                            ),
+                                          ),
                                           Padding(
                                             padding: EdgeInsets.symmetric(
                                                 vertical: 1),
@@ -161,7 +188,9 @@ class TaskList extends StatelessWidget {
                                                                           namaBarang +
                                                                           ' sebanyak ' +
                                                                           tambahStok
-                                                                              .text+' '+satuanBarang +
+                                                                              .text +
+                                                                          ' ' +
+                                                                          satuanBarang +
                                                                           " ?",
                                                                       style: TextStyle(
                                                                           fontWeight: FontWeight
@@ -210,10 +239,7 @@ class TaskList extends StatelessWidget {
                                                                                 180,
                                                                             child:
                                                                                 RaisedButton(
-                                                                              child: Text("Batal",style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 20,
-                                                        color: Colors.black)),
+                                                                              child: Text("Batal", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black)),
                                                                               onPressed: () {
                                                                                 Navigator.of(konteksUpdate2).pop();
                                                                               },
@@ -265,8 +291,7 @@ class TaskList extends StatelessWidget {
                                                           color: Colors.white),
                                                     ),
                                                     onPressed: () async {
-                                                      if (_formKey.currentState
-                                                          .validate()) ;
+                                                      if (_formKey.currentState.validate());
                                                     },
                                                   ),
                                                 ),

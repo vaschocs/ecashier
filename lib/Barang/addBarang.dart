@@ -1,4 +1,5 @@
 import 'package:ecashier/Barang/kelolaBarang.dart';
+
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +32,10 @@ class TambahBarangPage extends StatefulWidget {
 
 class _TambahBarangPageState extends State<TambahBarangPage> {
   var selectedKategori;
-  String outputValidasi = "Nama Barang Sudah Terdaftar";
   var selectedSatuan;
+  var selectedSupplier;
+  String outputValidasi = "Nama Barang Sudah Terdaftar";
+
   bool sama;
   TextEditingController namaBarang = TextEditingController();
   TextEditingController katBarang = TextEditingController();
@@ -41,6 +44,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
   TextEditingController jmlStok = TextEditingController();
   TextEditingController satuan = TextEditingController();
   TextEditingController minStok = TextEditingController();
+  TextEditingController namaSupplier = TextEditingController();
 
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -63,6 +67,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
       Firestore.instance.collection("barang").document(value).setData({
         'namaBarang': namaBarang.text,
         'kategoriBarang': selectedKategori,
+        'namaSupplier' : selectedSupplier,
         'hjBarang': hjBarang.text,
         'hbBarang': hbBarang.text,
         'jmlStok': jmlStok.text,
@@ -128,7 +133,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                     controller: namaBarang,
                     validator: (namaBarang) {
                       if (namaBarang == null || namaBarang.isEmpty) {
-                        return 'Masukan Nama Kategori';
+                        return 'Masukan Nama Barang';
                       } else {
                         cek(namaBarang);
 
@@ -338,6 +343,95 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                     },
                   ),
                 ),
+                // Padding(
+                //   padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
+                //   child: RaisedButton(
+                //     shape: RoundedRectangleBorder(
+                //         side: BorderSide(width: 2, color: Colors.green)),
+                //     onPressed: () {
+                //       Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //             builder: (context) => MinimumStokPage(),
+                //           ));
+                //     },
+                //     color: Colors.white,
+                //     child: Padding(
+                //       padding: EdgeInsets.symmetric(vertical: 10),
+                //       child: Row(
+                //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //         children: <Widget>[
+                //           Text(
+                //             'Minimum Stok',
+                //             style: TextStyle(
+                //               fontSize: 18,
+                //               fontWeight: FontWeight.normal,
+                //               color: Colors.black,
+                //             ),
+                //           ),
+                //           Text(
+                //             '                                          ',
+                //             style: TextStyle(
+                //               fontSize: 20,
+                //               fontWeight: FontWeight.w700,
+                //               color: Colors.black,
+                //             ),
+                //           ),
+                //
+                //           Icon(
+                //             Icons.keyboard_arrow_right_sharp,
+                //             color: Colors.black,
+                //           )
+                //         ],
+                //       ),
+                //     ),
+                //   ),
+                // ),
+                StreamBuilder<QuerySnapshot>(
+                    stream:
+                    Firestore.instance.collection('supplier').snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Text("Tidak bisa mendapatkan data");
+                      } else {
+                        List<DropdownMenuItem> supplierItems = [];
+                        for (int i = 0;
+                        i < snapshot.data.documents.length; i++) {
+                          DocumentSnapshot snap = snapshot.data.documents[i];
+                          supplierItems.add(DropdownMenuItem(
+                            child: Text(
+                              snap.data['namaSupplier'],
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            value: "${snap.data['namaSupplier']}",
+                          ));
+                        }
+                        return Container(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 10),
+                            child: DropdownButtonFormField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Supplier Barang'),
+                              value: selectedSupplier,
+                              items: supplierItems,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Supplier Barang Wajib Diisi';
+                                }
+                                return null;
+                              },
+                              onChanged: (supplierValue) {
+                                setState(() {
+                                  selectedSupplier = supplierValue;
+                                });
+                              },
+                            ),
+                          ),
+                        );
+                      }
+                    }),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   child: RaisedButton(

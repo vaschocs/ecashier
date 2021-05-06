@@ -1,7 +1,7 @@
 import 'package:ecashier/Barang/kategori.dart';
 import 'package:ecashier/Barang/produk.dart';
-import 'package:ecashier/Barang/satuan.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:ecashier/Barang/supplier.dart';
+
 import 'package:flutter/material.dart';
 import 'package:ecashier/side_drawer.dart';
 
@@ -31,7 +31,7 @@ class KelolaBarangPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           drawer: SideDrawer(),
           appBar: AppBar(
@@ -39,6 +39,7 @@ class KelolaBarangPage extends StatelessWidget {
               tabs: [
                 Tab(text: 'Produk',),
                 Tab(text: 'Kategori'),
+                Tab(text: 'Supplier',)
 
               ],
             ),
@@ -49,7 +50,7 @@ class KelolaBarangPage extends StatelessWidget {
             children: [
               ProdukPage(),
               KategoriPage(),
-              // SatuanPage()
+              SupplierPage()
 
             ],
           ),

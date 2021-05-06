@@ -101,7 +101,7 @@ class _KategoriPageState extends State<KategoriPage> {
               context: context,
               builder: (BuildContext konteksAdd) {
                 return AlertDialog(
-                  title: Text('Edit Kategori'),
+                  title: Text('Tambah Kategori'),
                   content: Stack(
                     // ignore: deprecated_member_use
                     overflow: Overflow.visible,

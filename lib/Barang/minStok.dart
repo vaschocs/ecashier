@@ -1,4 +1,3 @@
-import 'package:ecashier/Barang/kelolaBarang.dart';
 
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,27 +13,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Flutter login UI',
+        title: 'Kelola Minimum Stok',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
         debugShowCheckedModeBanner: false,
         home: Scaffold(
-          body: EditBarangPage(),
+          body: MinimumStokPage(),
         ));
   }
 }
 
-class EditBarangPage extends StatefulWidget {
-  EditBarangPage(
+class MinimumStokPage extends StatefulWidget {
+  MinimumStokPage(
       {this.namaBarang,
-      this.katBarang,
-      this.hjBarang,
-      this.hbBarang,
-      this.jmlStok,
-      this.minStok,
-      this.satuan,
-      this.index});
+        this.katBarang,
+        this.hjBarang,
+        this.hbBarang,
+        this.jmlStok,
+        this.minStok,
+        this.satuan,
+        this.index});
+
 
   final String namaBarang;
   final String katBarang;
@@ -45,13 +45,13 @@ class EditBarangPage extends StatefulWidget {
   final index;
   final String satuan;
   @override
-  _EditBarangPageState createState() => _EditBarangPageState();
+  _MinimumStokPageState createState() => _MinimumStokPageState();
 }
 
-class _EditBarangPageState extends State<EditBarangPage> {
+class _MinimumStokPageState extends State<MinimumStokPage> {
   var selectedKategori;
   var selectedSatuan;
-  var index;
+  var indeks;
 
   TextEditingController controllerNama;
   TextEditingController controllerHj;
@@ -60,6 +60,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
   TextEditingController controllerminStok;
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
 
   // void updateBarang(List<DocumentSnapshot> documents, indeks) async {
   //   if (documents.length >= 1) {
@@ -96,21 +97,23 @@ class _EditBarangPageState extends State<EditBarangPage> {
     controllerminStok = new TextEditingController(text: widget.minStok);
     selectedKategori = widget.katBarang;
     selectedSatuan = widget.satuan;
-    index = widget.index;
+    indeks = widget.index;
   }
 
-  Future<bool> deleteBarang(DocumentReference index) async {
+  Future<bool> deleteBarang(DocumentReference index, BuildContext deleteKonteks) async {
     Firestore.instance.runTransaction((transaction) async {
+      // final snackBar = SnackBar(
       DocumentSnapshot snapshot = await transaction.get(index);
       await transaction.delete(snapshot.reference);
 
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => KelolaBarangPage(),
-          ));
+      Navigator.of(deleteKonteks).pop();
+
+      final snackBar =
+      SnackBar(content: Text('Kategori ' ' berhasil dihapus'));
+      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
     });
   }
+
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -154,9 +157,8 @@ class _EditBarangPageState extends State<EditBarangPage> {
                 child: TextFormField(
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Nama Barang',
-                  ),
+                    border: OutlineInputBorder(), labelText: 'Nama Barang',),
+                  autofocus: true,
                   controller: controllerNama,
                   validator: (value) {},
                 ),
@@ -180,8 +182,8 @@ class _EditBarangPageState extends State<EditBarangPage> {
                       }
                       return Container(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 10),
+                          padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                           child: DropdownButtonFormField(
                             decoration: InputDecoration(
                                 border: OutlineInputBorder(),
@@ -211,6 +213,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                     border: OutlineInputBorder(),
                     labelText: 'Harga Jual Barang',
                   ),
+                  autofocus: true,
                   keyboardType: TextInputType.number,
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly
@@ -231,6 +234,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                   controller: controllerHb,
                 ),
               ),
+
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: SizedBox.fromSize(
@@ -286,8 +290,8 @@ class _EditBarangPageState extends State<EditBarangPage> {
                       }
                       return Container(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 10),
+                          padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                           child: DropdownButtonFormField(
                             decoration: InputDecoration(
                                 border: OutlineInputBorder(),
@@ -343,15 +347,13 @@ class _EditBarangPageState extends State<EditBarangPage> {
                       ],
                     ),
                   ),
+
                 ),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: RaisedButton(
-                  onPressed: () async {
-                    deleteBarang(index);
-                    return null;
-                  },
+                  onPressed: () async {},
                   color: Colors.redAccent,
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
@@ -369,6 +371,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                       ],
                     ),
                   ),
+
                 ),
               ),
             ],
