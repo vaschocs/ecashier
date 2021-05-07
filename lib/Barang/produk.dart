@@ -78,7 +78,6 @@ class TaskList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
     return new ListView.builder(
       itemCount: document.length,
       itemBuilder: (

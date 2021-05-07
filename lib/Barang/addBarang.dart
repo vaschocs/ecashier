@@ -64,7 +64,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
         sama = true;
       });
     } else {
-      Firestore.instance.collection("barang").document(value).setData({
+      Firestore.instance.collection("barang").document(namaBarang.text).setData({
         'namaBarang': namaBarang.text,
         'kategoriBarang': selectedKategori,
         'namaSupplier' : selectedSupplier,
@@ -129,14 +129,13 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(
                         border: OutlineInputBorder(), labelText: 'Nama Barang'),
-                    autofocus: true,
+
                     controller: namaBarang,
                     validator: (namaBarang) {
                       if (namaBarang == null || namaBarang.isEmpty) {
                         return 'Masukan Nama Barang';
                       } else {
                         cek(namaBarang);
-
                         if (sama == true) {
                           return outputValidasi;
                         } else if (sama == false) {
@@ -203,7 +202,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                       border: OutlineInputBorder(),
                       labelText: 'Harga Jual Barang',
                     ),
-                    autofocus: true,
+
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Harga Jual Wajib Diisi';
