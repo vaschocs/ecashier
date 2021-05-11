@@ -215,8 +215,7 @@ class TaskList extends StatelessWidget {
   bool adaFile;
   bool fileUsed;
 
-  Future<bool> update(
-      DocumentReference index, String value, BuildContext konteksUpdate) async {
+  Future<bool> update(DocumentReference index, String value, BuildContext konteksUpdate) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('kategori')
         .where('namaKategori', isEqualTo: value)

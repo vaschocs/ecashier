@@ -1,4 +1,3 @@
-import 'package:filter_list/filter_list.dart';
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {git
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,6 +35,24 @@ class _TransaksiPageState extends State<TransaksiPage> {
   TextEditingController katBarang = TextEditingController();
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  Future<bool> cek(String value) async {
+    final QuerySnapshot result = await Firestore.instance
+        .collection('barang')
+        .where('kategoriBarang', isEqualTo: selectedKategori)
+        .getDocuments();
+    final List<DocumentSnapshot> documents = result.documents;
+    if (documents.length == 0) {
+      await setState(() {
+        sama = true;
+      });
+    } else {
+      setState(() {
+        sama = false;
+      });
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,31 +118,100 @@ class _TransaksiPageState extends State<TransaksiPage> {
                                         Padding(
                                           padding: EdgeInsets.symmetric(
                                               vertical: 10, horizontal: 10),
-                                            child: Container(
-                                              height: 650,
-                                              width: 1500,
-                                              color: Colors.white,
-                                              // child:  StreamBuilder(
-                                              //   stream: Firestore.instance.collection('barang').snapshots(),
-                                              //   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot){
-                                              //     final QuerySnapshot result = await Firestore.instance
-                                              //         .collection('barang')
-                                              //         .where('namaBarang', isEqualTo: value)
-                                              //         .limit(1)
-                                              //         .getDocuments();
-                                              //     final List<DocumentSnapshot> documents = result.documents;
-                                              //     if (!snapshot.hasData)
-                                              //       return new Container(
-                                              //           child: Center(
-                                              //             child: CircularProgressIndicator(),
-                                              //           ));
-                                              //     return new TaskList(
-                                              //       document: snapshot.data.documents,
-                                              //     );
-                                              //   },
-                                              // ),
+                                          child: Container(
+                                            height: 300,
+                                            width: 1500,
+                                            decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: Colors.black,
+                                                    width: 2)),
+                                            child: StreamBuilder(
+                                              stream: Firestore.instance
+                                                  .collection('barang')
+                                                  .where('kategoriBarang',
+                                                      isEqualTo:
+                                                          selectedKategori)
+                                                  .snapshots(),
+                                              builder: (BuildContext context,
+                                                  AsyncSnapshot<QuerySnapshot>
+                                                      snapshot) {
+                                                if (!snapshot.hasData)
+                                                  return new Container(
+                                                      child: Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  ));
+                                                return new TaskList(
+                                                  document:
+                                                      snapshot.data.documents,
+                                                );
+                                              },
                                             ),
-
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 10, horizontal: 10),
+                                          child: new Container(
+                                              height: 300,
+                                              width: 1500,
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      color: Colors.black,
+                                                      width: 2)),
+                                              child: DataTable(
+                                                columns: const <DataColumn>[
+                                                  DataColumn(
+                                                    label: Text(
+                                                      'Name',
+                                                      style: TextStyle(
+                                                          fontStyle:
+                                                              FontStyle.italic),
+                                                    ),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text(
+                                                      'Age',
+                                                      style: TextStyle(
+                                                          fontStyle:
+                                                              FontStyle.italic),
+                                                    ),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text(
+                                                      'Role',
+                                                      style: TextStyle(
+                                                          fontStyle:
+                                                              FontStyle.italic),
+                                                    ),
+                                                  ),
+                                                ],
+                                                rows: const <DataRow>[
+                                                  DataRow(
+                                                    cells: <DataCell>[
+                                                      DataCell(Text('Sarah')),
+                                                      DataCell(Text('19')),
+                                                      DataCell(Text('Student')),
+                                                    ],
+                                                  ),
+                                                  DataRow(
+                                                    cells: <DataCell>[
+                                                      DataCell(Text('Janine')),
+                                                      DataCell(Text('43')),
+                                                      DataCell(
+                                                          Text('Professor')),
+                                                    ],
+                                                  ),
+                                                  DataRow(
+                                                    cells: <DataCell>[
+                                                      DataCell(Text('William')),
+                                                      DataCell(Text('27')),
+                                                      DataCell(Text(
+                                                          'Associate Professor')),
+                                                    ],
+                                                  ),
+                                                ],
+                                              )),
                                         ),
                                       ],
                                     )),
@@ -151,7 +237,10 @@ class TaskList extends StatelessWidget {
   Widget build(BuildContext context) {
     return new ListView.builder(
       itemCount: document.length,
-      itemBuilder: (BuildContext context, int i,) {
+      itemBuilder: (
+        BuildContext context,
+        int i,
+      ) {
         String namaBarang = document[i].data['namaBarang'].toString();
         String hjBarang = document[i].data['hjBarang'].toString();
         String minStok = document[i].data['minStok'].toString();
@@ -161,7 +250,7 @@ class TaskList extends StatelessWidget {
         String satuan = document[i].data['satuan'].toString();
 
         return new Padding(
-          padding: const EdgeInsets.all(5.0),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Container(
             color: Colors.white60,
             child: Card(
