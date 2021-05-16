@@ -26,10 +26,10 @@ dependencies:
   intl: 0.15.7
   flappy_search_bar: 1.4.1
   filter_list: ^0.0.9
+  currency_text_input_formatter: ^2.0.1
 
-
-
-
+dependency_overrides:
+  intl: any
 
 dev_dependencies:
   flutter_test:

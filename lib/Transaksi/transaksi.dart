@@ -1,3 +1,6 @@
+
+
+import 'package:ecashier/Barang/editBarang.dart';
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,37 +24,44 @@ class MyApp extends StatelessWidget {
 }
 
 class TransaksiPage extends StatefulWidget {
+  TransaksiPage(
+      {this.namaBarang,
+      this.katBarang,
+      this.hjBarang,
+      this.hbBarang,
+      this.jmlStok,
+      this.minStok,
+      this.namaSupplier,
+      this.satuan,
+      this.index});
+
+  final String namaBarang;
+  final String katBarang;
+  final String hjBarang;
+  final String hbBarang;
+  final String jmlStok;
+  final String minStok;
+  final index;
+  final String satuan;
+  final String namaSupplier;
   @override
   _TransaksiPageState createState() => _TransaksiPageState();
 }
 
 class _TransaksiPageState extends State<TransaksiPage> {
   var selectedKategori;
-
-  String outputValidasi = "Nama Barang Sudah Terdaftar";
-
-  bool sama;
-
-  TextEditingController katBarang = TextEditingController();
+  var namaBarang;
+  var hargaBarang;
+  var satuanBarang;
+  var kosong;
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  Future<bool> cek(String value) async {
-    final QuerySnapshot result = await Firestore.instance
-        .collection('barang')
-        .where('kategoriBarang', isEqualTo: selectedKategori)
-        .getDocuments();
-    final List<DocumentSnapshot> documents = result.documents;
-    if (documents.length == 0) {
-      await setState(() {
-        sama = true;
-      });
-    } else {
-      setState(() {
-        sama = false;
-      });
-    }
-    return null;
+  void initState() {
+    super.initState();
+    namaBarang = widget.namaBarang;
+    hargaBarang = widget.hjBarang;
+    satuanBarang = widget.satuan;
   }
 
   @override
@@ -123,8 +133,8 @@ class _TransaksiPageState extends State<TransaksiPage> {
                                             width: 1500,
                                             decoration: BoxDecoration(
                                                 border: Border.all(
-                                                    color: Colors.black,
-                                                    width: 2)),
+                                              color: Colors.grey,
+                                            )),
                                             child: StreamBuilder(
                                               stream: Firestore.instance
                                                   .collection('barang')
@@ -152,66 +162,16 @@ class _TransaksiPageState extends State<TransaksiPage> {
                                         Padding(
                                           padding: EdgeInsets.symmetric(
                                               vertical: 10, horizontal: 10),
-                                          child: new Container(
-                                              height: 300,
-                                              width: 1500,
-                                              decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                      color: Colors.black,
-                                                      width: 2)),
-                                              child: DataTable(
-                                                columns: const <DataColumn>[
-                                                  DataColumn(
-                                                    label: Text(
-                                                      'Name',
-                                                      style: TextStyle(
-                                                          fontStyle:
-                                                              FontStyle.italic),
-                                                    ),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text(
-                                                      'Age',
-                                                      style: TextStyle(
-                                                          fontStyle:
-                                                              FontStyle.italic),
-                                                    ),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text(
-                                                      'Role',
-                                                      style: TextStyle(
-                                                          fontStyle:
-                                                              FontStyle.italic),
-                                                    ),
-                                                  ),
-                                                ],
-                                                rows: const <DataRow>[
-                                                  DataRow(
-                                                    cells: <DataCell>[
-                                                      DataCell(Text('Sarah')),
-                                                      DataCell(Text('19')),
-                                                      DataCell(Text('Student')),
-                                                    ],
-                                                  ),
-                                                  DataRow(
-                                                    cells: <DataCell>[
-                                                      DataCell(Text('Janine')),
-                                                      DataCell(Text('43')),
-                                                      DataCell(
-                                                          Text('Professor')),
-                                                    ],
-                                                  ),
-                                                  DataRow(
-                                                    cells: <DataCell>[
-                                                      DataCell(Text('William')),
-                                                      DataCell(Text('27')),
-                                                      DataCell(Text(
-                                                          'Associate Professor')),
-                                                    ],
-                                                  ),
-                                                ],
-                                              )),
+                                          child: Container(
+                                            height: 300,
+                                            width: 1500,
+                                            decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: Colors.grey)),
+                                            child: snapshot.data == null
+                                                ? Text("null")
+                                                : Text(namaBarang.toString()),
+                                          ),
                                         ),
                                       ],
                                     )),
@@ -232,6 +192,7 @@ class TaskList extends StatelessWidget {
   TaskList({this.document});
 
   final List<DocumentSnapshot> document;
+
 
   @override
   Widget build(BuildContext context) {
@@ -257,17 +218,20 @@ class TaskList extends StatelessWidget {
                 shape: Border.all(color: Colors.green),
                 child: ListTile(
                   onTap: () {
-                    // Navigator.of(context).push(new MaterialPageRoute(
-                    //     builder: (BuildContext context) => new EditBarangPage(
-                    //           namaBarang: namaBarang,
-                    //           katBarang: katBarang,
-                    //           hjBarang: hjBarang,
-                    //           hbBarang: hbBarang,
-                    //           jmlStok: jmlStok,
-                    //           minStok: minStok,
-                    //           satuan: satuan,
-                    //           index: document[i].reference,
-                    //         )));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                                new TransaksiPage(
+                                  namaBarang: namaBarang,
+                                  katBarang: katBarang,
+                                  hjBarang: hjBarang,
+                                  hbBarang: hbBarang,
+                                  jmlStok: jmlStok,
+                                  minStok: minStok,
+                                  satuan: satuan,
+                                  index: document[i].reference,
+                                )));
                   },
                   leading: Icon(Icons.format_list_bulleted),
                   title: Text(

@@ -1,5 +1,5 @@
 import 'package:ecashier/Barang/kelolaBarang.dart';
-
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -202,6 +202,11 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                       border: OutlineInputBorder(),
                       labelText: 'Harga Jual Barang',
                     ),
+                    inputFormatters: [CurrencyTextInputFormatter(
+                      locale: 'id',
+                      decimalDigits: 0,
+                      symbol: 'Rp'
+                    )],
 
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -210,9 +215,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                       return null;
                     },
                     keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
+
                     controller: hjBarang,
                   ),
                 ),
@@ -223,15 +226,18 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                         border: OutlineInputBorder(),
                         labelText: 'Harga Beli Barang'),
                     keyboardType: TextInputType.number,
+
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Harga Beli Wajib Diisi';
                       }
                       return null;
                     },
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
+                    inputFormatters: [CurrencyTextInputFormatter(
+                        locale: 'id',
+                        decimalDigits: 0,
+                        symbol: 'Rp'
+                    )],
                     controller: hbBarang,
                   ),
                 ),
@@ -323,25 +329,25 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                         );
                       }
                     }),
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Minimum Stok'),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
-                    controller: minStok,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Minimum Stok wajib diisi';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
+                // Padding(
+                //   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                //   child: TextFormField(
+                //     decoration: InputDecoration(
+                //         border: OutlineInputBorder(),
+                //         labelText: 'Minimum Stok'),
+                //     keyboardType: TextInputType.number,
+                //     inputFormatters: <TextInputFormatter>[
+                //       FilteringTextInputFormatter.digitsOnly
+                //     ],
+                //     controller: minStok,
+                //     validator: (value) {
+                //       if (value == null || value.isEmpty) {
+                //         return 'Minimum Stok wajib diisi';
+                //       }
+                //       return null;
+                //     },
+                //   ),
+                // ),
                 // Padding(
                 //   padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
                 //   child: RaisedButton(
@@ -471,3 +477,4 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
     );
   }
 }
+

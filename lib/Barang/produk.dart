@@ -90,7 +90,7 @@ class TaskList extends StatelessWidget {
         String katBarang = document[i].data['kategoriBarang'].toString();
         String hbBarang = document[i].data['hbBarang'].toString();
         String jmlStok = document[i].data['jmlStok'].toString();
-
+        String namaSupplier = document[i].data['namaSupplier'].toString();
         String satuan = document[i].data['satuan'].toString();
 
         // TextEditingController editKategori;
@@ -114,13 +114,14 @@ class TaskList extends StatelessWidget {
                         jmlStok: jmlStok,
                         minStok: minStok,
                         satuan: satuan,
+                        namaSupplier: namaSupplier,
                         index : document[i].reference,
                       )
                     ));
                   },
                   leading: Icon(Icons.format_list_bulleted),
                   title: Text(namaBarang, style: TextStyle(fontSize: 20),),
-                subtitle: Text('Rp. '+ hjBarang, style: TextStyle(fontSize: 18),),
+                subtitle: Text(hjBarang, style: TextStyle(fontSize: 18),),
                 trailing: Text('Stok : ' + jmlStok, style: TextStyle(fontSize: 20),),
                 )
 
