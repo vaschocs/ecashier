@@ -37,6 +37,7 @@ class EditBarangPage extends StatefulWidget {
       this.minStok,
       this.namaSupplier,
       this.satuan,
+        this.leadTime,
       this.index});
 
   final String namaBarang;
@@ -46,6 +47,7 @@ class EditBarangPage extends StatefulWidget {
   final String jmlStok;
   final String minStok;
   final index;
+  final String leadTime;
   final String satuan;
   final String namaSupplier;
   @override
@@ -63,7 +65,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
   TextEditingController controllerHb;
   TextEditingController controllerjmlStok;
   TextEditingController controllerminStok;
-
+TextEditingController controllerLeadTime;
   final _formKey = GlobalKey<FormState>();
   bool jawaban;
   bool hasil;
@@ -82,6 +84,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
     selectedSupplier = widget.namaSupplier;
     selectedSatuan = widget.satuan;
     index = widget.index;
+    controllerLeadTime = new TextEditingController(text: widget.leadTime);
   }
 
   Future<bool> deleteBarang(

@@ -187,22 +187,7 @@ class _SupplierPageState extends State<SupplierPage> {
                                     ],
                                   ),
                                 ),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 5),
-                                  child: TextFormField(
-                                    textCapitalization:
-                                        TextCapitalization.words,
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Waktu Pemesanan',
-                                    ),
-                                    controller: leadTime,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ],
-                                  ),
-                                ),
+
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: <Widget>[
@@ -412,6 +397,7 @@ class TaskList extends StatelessWidget {
                                                     padding: EdgeInsets.symmetric(
                                                         vertical: 1),
                                                     child: TextFormField(
+                                                      enabled: false,
                                                       textCapitalization:
                                                       TextCapitalization
                                                           .words,
@@ -469,22 +455,7 @@ class TaskList extends StatelessWidget {
                                                       controller: editKontak,
                                                     ),
                                                   ),
-                                                  Padding(
-                                                    padding: EdgeInsets.symmetric(
-                                                        vertical: 5),
-                                                    child: TextFormField(
-                                                      textCapitalization:
-                                                      TextCapitalization
-                                                          .words,
-                                                      decoration: InputDecoration(
-                                                        border:
-                                                        OutlineInputBorder(),
-                                                        labelText:
-                                                        'Waktu Pemesanan',
-                                                      ),
-                                                      controller: editLeadTime,
-                                                    ),
-                                                  ),
+
                                                   Row(
                                                     mainAxisAlignment:
                                                     MainAxisAlignment.end,

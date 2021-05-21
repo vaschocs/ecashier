@@ -12,6 +12,7 @@ class SideDrawer extends StatefulWidget {
   SideDrawerState createState() => new SideDrawerState();
 }
 
+
 class SideDrawerState extends State<SideDrawer>{
   final FirebaseAuth firebaseauth = FirebaseAuth.instance;
   final GoogleSignIn googleSignIn = new GoogleSignIn();
@@ -20,6 +21,8 @@ class SideDrawerState extends State<SideDrawer>{
   Future<void> _logOut() async {
     await FirebaseAuth.instance.signOut();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +44,7 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.home),
             title: Text('Beranda'),
-            onTap: () => {Navigator.pushReplacement(
+            onTap: () => {Navigator.push(
             context,
             MaterialPageRoute(
             builder: (context) => HomePage(),
@@ -50,7 +53,7 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.shopping_basket),
             title: Text('Kelola Produk'),
-            onTap: () => {Navigator.pushReplacement(
+            onTap: () => {Navigator.push(
             context,
             MaterialPageRoute(
             builder: (context) => KelolaBarangPage(),
@@ -59,7 +62,7 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.add_shopping_cart_sharp),
             title: Text('Restock'),
-            onTap: () =>{Navigator.pushReplacement(
+            onTap: () =>{Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => KelolaRestockPage(),
@@ -83,10 +86,10 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.attach_money),
             title: Text('Transaksi'),
-            onTap: () =>{Navigator.pushReplacement(
+            onTap: () =>{Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => TransaksiPage(),
+                  builder: (context) => TransaksiPage()
                 ))},
           ),
           ListTile(

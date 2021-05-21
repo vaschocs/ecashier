@@ -45,6 +45,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
   TextEditingController satuan = TextEditingController();
   TextEditingController minStok = TextEditingController();
   TextEditingController namaSupplier = TextEditingController();
+  TextEditingController leadTime = TextEditingController();
 
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -74,6 +75,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
         'satuan': selectedSatuan,
         'minStok': minStok.text,
         'waktu' : formattedDate,
+        'leadTime' : leadTime.text
       });
 
       namaBarang.text = '';
@@ -243,30 +245,6 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  child: SizedBox.fromSize(
-                    size: Size(1500, 50), // button width and height
-                    child: ClipRect(
-                      child: Material(
-                        color: Colors.green,
-                        borderOnForeground: true, // button color
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              "Stok",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 30,
-                                  color: Colors.white),
-                            ), // text
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   child: TextFormField(
                     decoration: InputDecoration(
                         border: OutlineInputBorder(), labelText: 'Jumlah Stok'),
@@ -283,115 +261,69 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                     },
                   ),
                 ),
-                StreamBuilder<QuerySnapshot>(
-                    stream: Firestore.instance.collection('satuan').snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return Text("Tidak bisa mendapatkan data");
-                      } else {
-                        List<DropdownMenuItem> satuanItems = [];
-                        for (int i = 0;
-                            i < snapshot.data.documents.length;
-                            i++) {
-                          DocumentSnapshot snap = snapshot.data.documents[i];
-                          satuanItems.add(DropdownMenuItem(
-                            child: Text(
-                              snap.documentID,
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            value: "${snap.documentID}",
-                          ));
-                        }
-                        return Container(
-
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 5),
-                            child: DropdownButtonFormField(
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Satuan Barang'),
-                              value: selectedSatuan,
-                              items: satuanItems,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Satuan Barang Wajib Diisi';
-                                }
-                                return null;
-                              },
-                              onChanged: (satuanValue) {
-                                setState(() {
-                                  selectedSatuan = satuanValue;
-                                });
-                              },
-                            ),
-                          ),
-                        );
-                      }
-                    }),
-                // Padding(
-                //   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                //   child: TextFormField(
-                //     decoration: InputDecoration(
-                //         border: OutlineInputBorder(),
-                //         labelText: 'Minimum Stok'),
-                //     keyboardType: TextInputType.number,
-                //     inputFormatters: <TextInputFormatter>[
-                //       FilteringTextInputFormatter.digitsOnly
-                //     ],
-                //     controller: minStok,
-                //     validator: (value) {
-                //       if (value == null || value.isEmpty) {
-                //         return 'Minimum Stok wajib diisi';
-                //       }
-                //       return null;
-                //     },
-                //   ),
-                // ),
-                // Padding(
-                //   padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                //   child: RaisedButton(
-                //     shape: RoundedRectangleBorder(
-                //         side: BorderSide(width: 2, color: Colors.green)),
-                //     onPressed: () {
-                //       Navigator.push(
-                //           context,
-                //           MaterialPageRoute(
-                //             builder: (context) => MinimumStokPage(),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                    textCapitalization:
+                    TextCapitalization.words,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Waktu Pemesanan',
+                    ),
+                    controller: leadTime,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                  ),
+                ),
+                // StreamBuilder<QuerySnapshot>(
+                //     stream: Firestore.instance.collection('satuan').snapshots(),
+                //     builder: (context, snapshot) {
+                //       if (!snapshot.hasData) {
+                //         return Text("Tidak bisa mendapatkan data");
+                //       } else {
+                //         List<DropdownMenuItem> satuanItems = [];
+                //         for (int i = 0;
+                //             i < snapshot.data.documents.length;
+                //             i++) {
+                //           DocumentSnapshot snap = snapshot.data.documents[i];
+                //           satuanItems.add(DropdownMenuItem(
+                //             child: Text(
+                //               snap.documentID,
+                //               style: TextStyle(color: Colors.black),
+                //             ),
+                //             value: "${snap.documentID}",
                 //           ));
-                //     },
-                //     color: Colors.white,
-                //     child: Padding(
-                //       padding: EdgeInsets.symmetric(vertical: 10),
-                //       child: Row(
-                //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //         children: <Widget>[
-                //           Text(
-                //             'Minimum Stok',
-                //             style: TextStyle(
-                //               fontSize: 18,
-                //               fontWeight: FontWeight.normal,
-                //               color: Colors.black,
-                //             ),
-                //           ),
-                //           Text(
-                //             '                                          ',
-                //             style: TextStyle(
-                //               fontSize: 20,
-                //               fontWeight: FontWeight.w700,
-                //               color: Colors.black,
-                //             ),
-                //           ),
+                //         }
+                //         return Container(
                 //
-                //           Icon(
-                //             Icons.keyboard_arrow_right_sharp,
-                //             color: Colors.black,
-                //           )
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                // ),
+                //           child: Padding(
+                //             padding: EdgeInsets.symmetric(
+                //                 vertical: 10, horizontal: 5),
+                //             child: DropdownButtonFormField(
+                //               decoration: InputDecoration(
+                //                   border: OutlineInputBorder(),
+                //                   labelText: 'Satuan Barang'),
+                //               value: selectedSatuan,
+                //               items: satuanItems,
+                //               validator: (value) {
+                //                 if (value == null || value.isEmpty) {
+                //                   return 'Satuan Barang Wajib Diisi';
+                //                 }
+                //                 return null;
+                //               },
+                //               onChanged: (satuanValue) {
+                //                 setState(() {
+                //                   selectedSatuan = satuanValue;
+                //                 });
+                //               },
+                //             ),
+                //           ),
+                //         );
+                //       }
+                //     }),
+
                 StreamBuilder<QuerySnapshot>(
                     stream:
                     Firestore.instance.collection('supplier').snapshots(),

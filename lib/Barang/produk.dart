@@ -92,6 +92,7 @@ class TaskList extends StatelessWidget {
         String jmlStok = document[i].data['jmlStok'].toString();
         String namaSupplier = document[i].data['namaSupplier'].toString();
         String satuan = document[i].data['satuan'].toString();
+        String leadTime = document[i].data['leadTime'].toString();
 
         // TextEditingController editKategori;
 
@@ -115,6 +116,7 @@ class TaskList extends StatelessWidget {
                         minStok: minStok,
                         satuan: satuan,
                         namaSupplier: namaSupplier,
+                        leadTime : leadTime,
                         index : document[i].reference,
                       )
                     ));

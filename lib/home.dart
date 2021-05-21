@@ -257,7 +257,7 @@ class HomePage extends StatelessWidget {
                         color: Colors.white60, // button color
                         child: InkWell(
                           splashColor: Colors.green, // splash color
-                          onTap: () =>{Navigator.pushReplacement(
+                          onTap: () =>{Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => TransaksiPage(),

@@ -1,16 +1,20 @@
-
-
 import 'package:ecashier/Barang/editBarang.dart';
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'bill.dart';
+
 void main() => runApp(MyApp());
 
+var itemName;
+
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
+    itemName = null;
     return MaterialApp(
         title: 'Transaksi',
         theme: ThemeData(
@@ -49,19 +53,32 @@ class TransaksiPage extends StatefulWidget {
 }
 
 class _TransaksiPageState extends State<TransaksiPage> {
+  // _TransaksiPageState(
+  //     {this.namaBarang,
+  //     this.katBarang,
+  //     this.hjBarang,
+  //     this.hbBarang,
+  //     this.jmlStok,
+  //     this.minStok,
+  //     this.namaSupplier,
+  //     this.satuan,
+  //     this.index});
+  //
+  // final String namaBarang;
+  // final String katBarang;
+  // final String hjBarang;
+  // final String hbBarang;
+  // final String jmlStok;
+  // final String minStok;
+  // final index;
+  // final String satuan;
+  // final String namaSupplier;
   var selectedKategori;
-  var namaBarang;
-  var hargaBarang;
-  var satuanBarang;
-  var kosong;
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   void initState() {
     super.initState();
-    namaBarang = widget.namaBarang;
-    hargaBarang = widget.hjBarang;
-    satuanBarang = widget.satuan;
   }
 
   @override
@@ -78,6 +95,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
         body: Column(
           children: <Widget>[
             SingleChildScrollView(
+
               child: Form(
                 key: formKey,
                 child: Container(
@@ -129,7 +147,7 @@ class _TransaksiPageState extends State<TransaksiPage> {
                                           padding: EdgeInsets.symmetric(
                                               vertical: 10, horizontal: 10),
                                           child: Container(
-                                            height: 300,
+                                            height: 650,
                                             width: 1500,
                                             decoration: BoxDecoration(
                                                 border: Border.all(
@@ -159,20 +177,6 @@ class _TransaksiPageState extends State<TransaksiPage> {
                                             ),
                                           ),
                                         ),
-                                        Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 10, horizontal: 10),
-                                          child: Container(
-                                            height: 300,
-                                            width: 1500,
-                                            decoration: BoxDecoration(
-                                                border: Border.all(
-                                                    color: Colors.grey)),
-                                            child: snapshot.data == null
-                                                ? Text("null")
-                                                : Text(namaBarang.toString()),
-                                          ),
-                                        ),
                                       ],
                                     )),
                               );
@@ -184,15 +188,26 @@ class _TransaksiPageState extends State<TransaksiPage> {
               ),
             ),
           ],
-        ));
+        ),
+      );
   }
 }
 
-class TaskList extends StatelessWidget {
+class TaskList extends StatefulWidget {
   TaskList({this.document});
-
   final List<DocumentSnapshot> document;
+  @override
+  _TaskList createState() => _TaskList();
+}
 
+class _TaskList extends State<TaskList> {
+  var document;
+
+  @override
+  void initState() {
+    super.initState();
+    document = widget.document;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -218,20 +233,19 @@ class TaskList extends StatelessWidget {
                 shape: Border.all(color: Colors.green),
                 child: ListTile(
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                new TransaksiPage(
-                                  namaBarang: namaBarang,
-                                  katBarang: katBarang,
-                                  hjBarang: hjBarang,
-                                  hbBarang: hbBarang,
-                                  jmlStok: jmlStok,
-                                  minStok: minStok,
-                                  satuan: satuan,
-                                  index: document[i].reference,
-                                )));
+                    Navigator.of(context).push(new MaterialPageRoute(
+                        builder: (BuildContext context)=> new BillPage(
+                          namaBarang: namaBarang,
+                          katBarang: katBarang,
+                          hjBarang : hjBarang,
+                          hbBarang : hbBarang,
+                          jmlStok: jmlStok,
+                          minStok: minStok,
+                          satuan: satuan,
+
+                          index : document[i].reference,
+                        )
+                    ));
                   },
                   leading: Icon(Icons.format_list_bulleted),
                   title: Text(
