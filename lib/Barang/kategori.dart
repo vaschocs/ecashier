@@ -100,7 +100,6 @@ class _KategoriPageState extends State<KategoriPage> {
               context: context,
               builder: (BuildContext konteksAdd) {
                 return AlertDialog(
-                  title: Text('Tambah Kategori'),
                   content: Stack(
                     // ignore: deprecated_member_use
                     overflow: Overflow.visible,
@@ -110,11 +109,23 @@ class _KategoriPageState extends State<KategoriPage> {
                         child: Container(
                           margin: const EdgeInsets.all(10.0),
                           color: Colors.white,
-                          height: 150,
+                          height: 250,
                           width: 400,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
+                              Row(
+                                children: <Widget>[
+                                  Container(
+                                    child:Icon(Icons.category_rounded) ,
+                                  ),
+                                  Text('Tambah Kategori',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
+                                ],
+                              ),
+
+                              Container(
+                                height: 30,
+                              ),
                               Padding(
                                 padding: EdgeInsets.symmetric(vertical: 1),
                                 child: TextFormField(
@@ -142,6 +153,10 @@ class _KategoriPageState extends State<KategoriPage> {
                                   controller: namaKategori,
                                 ),
                               ),
+
+                              Container(
+                                height: 30,
+                              ),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
@@ -152,7 +167,7 @@ class _KategoriPageState extends State<KategoriPage> {
                                       height: 50,
                                       width: 180,
                                       child: RaisedButton(
-                                        color: Colors.green,
+                                        color: Colors.blue,
                                         child: Text(
                                           "Simpan",
                                           style: TextStyle(
@@ -172,6 +187,7 @@ class _KategoriPageState extends State<KategoriPage> {
                                     child: SizedBox(
                                       height: 50,
                                       width: 180,
+                                      // ignore: deprecated_member_use
                                       child: RaisedButton(
                                         child: Text("Batal",
                                             style: TextStyle(
@@ -200,7 +216,7 @@ class _KategoriPageState extends State<KategoriPage> {
         },
         label: Text('Tambah'),
         icon: Icon(Icons.add),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
       ),
     );
   }
@@ -245,8 +261,6 @@ class TaskList extends StatelessWidget {
     return null;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
@@ -264,7 +278,7 @@ class TaskList extends StatelessWidget {
         Future<bool> updateBarang(DocumentReference index) async {
           final QuerySnapshot result = await Firestore.instance
               .collection('barang')
-              .where('kategoriBarang', isEqualTo:editKategori.text)
+              .where('kategoriBarang', isEqualTo: editKategori.text)
               .limit(1)
               .getDocuments();
           final List<DocumentSnapshot> documents = await result.documents;
@@ -273,8 +287,10 @@ class TaskList extends StatelessWidget {
           } else {
             adaBarang = false;
           }
+
           return null;
         }
+
         // ignore: missing_return
         Future<bool> deleteKategori(
             DocumentReference index, BuildContext deleteKonteks) async {
@@ -304,14 +320,14 @@ class TaskList extends StatelessWidget {
           }
         }
 
-        String value;
+
 
         return new Padding(
           padding: const EdgeInsets.all(5.0),
           child: Container(
               color: Colors.white60,
               child: Card(
-                shape: Border.all(color: Colors.green),
+                shape: Border.all(color: Colors.blue),
                 child: new Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -320,7 +336,7 @@ class TaskList extends StatelessWidget {
                         children: <Widget>[
                           new Padding(
                             padding: const EdgeInsets.all(10.0),
-                            child: Icon(Icons.menu, color: Colors.green),
+                            child: Icon(Icons.menu, color: Colors.blue),
                           ),
                           Text(
                             namaKategori,
@@ -332,7 +348,7 @@ class TaskList extends StatelessWidget {
                         Widget>[
                       new IconButton(
                           icon: Icon(Icons.edit),
-                          color: Colors.green,
+                          color: Colors.blue,
                           onPressed: () async {
                             updateBarang(index);
                             print('adabarang' + adaBarang.toString());
@@ -379,9 +395,6 @@ class TaskList extends StatelessWidget {
                                                       validator: (value) {
                                                         update(index, value,
                                                             konteksUpdate);
-                                                        print('JAWABAN' +
-                                                            adaBarang
-                                                                .toString());
                                                         if (value == null ||
                                                             value.isEmpty) {
                                                           return 'Masukan Nama Kategori Baru';
@@ -407,7 +420,7 @@ class TaskList extends StatelessWidget {
                                                           height: 50,
                                                           width: 180,
                                                           child: RaisedButton(
-                                                            color: Colors.green,
+                                                            color: Colors.blue,
                                                             child: Text(
                                                               "Edit",
                                                               style: TextStyle(
@@ -466,7 +479,7 @@ class TaskList extends StatelessWidget {
                           }),
                       new IconButton(
                           icon: Icon(Icons.delete),
-                          color: Colors.green,
+                          color: Colors.blue,
                           onPressed: () async {
                             showDialog(
                                 context: context,

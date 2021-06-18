@@ -15,7 +15,9 @@ dependencies:
 
 #  image_picker: ^0.3.0
   cupertino_icons: ^0.1.2
+  dio: 1.0.0
   firebase_core: ^0.4.0+9
+
   firebase_auth: ^0.14.0+5
   google_sign_in: ^4.4.2
   cloud_firestore: ^0.13.5
@@ -23,6 +25,7 @@ dependencies:
   path_provider: ^1.6.7
   file_picker: ^1.8.0
   firebase_database: ^3.1.0
+  shared_preferences: ^0.5.0
   intl: 0.15.7
   flappy_search_bar: 1.4.1
   filter_list: ^0.0.9

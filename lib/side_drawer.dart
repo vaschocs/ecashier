@@ -1,3 +1,4 @@
+import 'package:ecashier/Analisis/pergerakan.dart';
 import 'package:ecashier/Restock/kelolaRestock.dart';
 import 'package:ecashier/Transaksi/transaksi.dart';
 import 'package:ecashier/main.dart';
@@ -38,7 +39,7 @@ class SideDrawerState extends State<SideDrawer>{
               ),
             ),
             decoration: BoxDecoration(
-              color: Colors.green,
+              color: Colors.blue,
             ),
           ),
           ListTile(
@@ -81,7 +82,11 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.compare_arrows_sharp),
             title: Text('Pergerakan Barang'),
-            onTap: () => {Navigator.of(context).pop()},
+            onTap: () => {Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AnalisPage(),
+                ))},
           ),
           ListTile(
             leading: Icon(Icons.attach_money),

@@ -27,6 +27,8 @@ class MyApp extends StatelessWidget {
 }
 
 class KelolaBarangPage extends StatelessWidget {
+
+  TextEditingController _filter;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -40,11 +42,13 @@ class KelolaBarangPage extends StatelessWidget {
                 Tab(text: 'Produk',),
                 Tab(text: 'Kategori'),
                 Tab(text: 'Supplier',)
-
               ],
             ),
             title: Text('Kelola Produk'),
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.blue,
+            actions:<Widget> [
+
+            ],
           ),
           body: TabBarView(
             children: [

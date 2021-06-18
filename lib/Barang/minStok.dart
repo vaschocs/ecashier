@@ -32,7 +32,7 @@ class MinimumStokPage extends StatefulWidget {
         this.hbBarang,
         this.jmlStok,
         this.minStok,
-        this.satuan,
+
         this.index});
 
 
@@ -43,14 +43,14 @@ class MinimumStokPage extends StatefulWidget {
   final String jmlStok;
   final String minStok;
   final index;
-  final String satuan;
+
   @override
   _MinimumStokPageState createState() => _MinimumStokPageState();
 }
 
 class _MinimumStokPageState extends State<MinimumStokPage> {
   var selectedKategori;
-  var selectedSatuan;
+
   var indeks;
 
   TextEditingController controllerNama;
@@ -96,7 +96,7 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
     controllerjmlStok = new TextEditingController(text: widget.jmlStok);
     controllerminStok = new TextEditingController(text: widget.minStok);
     selectedKategori = widget.katBarang;
-    selectedSatuan = widget.satuan;
+
     indeks = widget.index;
   }
 
@@ -120,7 +120,7 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
       drawer: SideDrawer(),
       appBar: AppBar(
         title: Text('Edit Produk'),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
       ),
       body: SingleChildScrollView(
         key: _formKey,
@@ -134,7 +134,7 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
                   size: Size(1500, 50), // button width and height
                   child: ClipRect(
                     child: Material(
-                      color: Colors.green,
+                      color: Colors.blue,
                       borderOnForeground: true, // button color
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -160,7 +160,7 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
                     border: OutlineInputBorder(), labelText: 'Nama Barang',),
                   autofocus: true,
                   controller: controllerNama,
-                  validator: (value) {},
+
                 ),
               ),
               StreamBuilder<QuerySnapshot>(
@@ -241,7 +241,7 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
                   size: Size(1500, 50), // button width and height
                   child: ClipRect(
                     child: Material(
-                      color: Colors.green,
+                      color: Colors.blue,
                       borderOnForeground: true, // button color
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -271,49 +271,6 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
                   controller: controllerjmlStok,
                 ),
               ),
-              StreamBuilder<QuerySnapshot>(
-                  stream: Firestore.instance.collection('satuan').snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return Text("Tidak bisa mendapatkan data");
-                    } else {
-                      List<DropdownMenuItem> satuanItems = [];
-                      for (int i = 0; i < snapshot.data.documents.length; i++) {
-                        DocumentSnapshot snap = snapshot.data.documents[i];
-                        satuanItems.add(DropdownMenuItem(
-                          child: Text(
-                            snap.documentID,
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          value: "${snap.documentID}",
-                        ));
-                      }
-                      return Container(
-                        child: Padding(
-                          padding:
-                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                          child: DropdownButtonFormField(
-                            decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Satuan Barang'),
-                            value: selectedSatuan,
-                            items: satuanItems,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Satuan barang wajib diisi';
-                              }
-                              return null;
-                            },
-                            onChanged: (satuanValue) {
-                              setState(() {
-                                selectedSatuan = satuanValue;
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    }
-                  }),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: TextFormField(
@@ -328,9 +285,10 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                // ignore: deprecated_member_use
                 child: RaisedButton(
                   onPressed: () async {},
-                  color: Colors.green,
+                  color: Colors.blue,
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
                     child: Row(

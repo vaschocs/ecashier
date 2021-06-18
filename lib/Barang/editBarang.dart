@@ -1,6 +1,7 @@
 import 'package:ecashier/Barang/kelolaBarang.dart';
 import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:ecashier/Barang/produk.dart';
+
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,8 @@ import 'package:intl/intl.dart';
 
 void main() => runApp(MyApp());
 BuildContext konteks;
-
+bool berhasil = false;
+bool hasil;
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -36,8 +38,7 @@ class EditBarangPage extends StatefulWidget {
       this.jmlStok,
       this.minStok,
       this.namaSupplier,
-      this.satuan,
-        this.leadTime,
+      this.leadTime,
       this.index});
 
   final String namaBarang;
@@ -48,7 +49,7 @@ class EditBarangPage extends StatefulWidget {
   final String minStok;
   final index;
   final String leadTime;
-  final String satuan;
+
   final String namaSupplier;
   @override
   _EditBarangPageState createState() => _EditBarangPageState();
@@ -56,7 +57,7 @@ class EditBarangPage extends StatefulWidget {
 
 class _EditBarangPageState extends State<EditBarangPage> {
   var selectedKategori;
-  var selectedSatuan;
+
   var selectedSupplier;
   var index;
 
@@ -65,10 +66,10 @@ class _EditBarangPageState extends State<EditBarangPage> {
   TextEditingController controllerHb;
   TextEditingController controllerjmlStok;
   TextEditingController controllerminStok;
-TextEditingController controllerLeadTime;
+  TextEditingController controllerLeadTime;
   final _formKey = GlobalKey<FormState>();
   bool jawaban;
-  bool hasil;
+
   bool hasilnya;
   String outputValidasi = "Nama Barang Sudah Terdaftar";
 
@@ -82,7 +83,7 @@ TextEditingController controllerLeadTime;
     controllerminStok = new TextEditingController(text: widget.minStok);
     selectedKategori = widget.katBarang;
     selectedSupplier = widget.namaSupplier;
-    selectedSatuan = widget.satuan;
+
     index = widget.index;
     controllerLeadTime = new TextEditingController(text: widget.leadTime);
   }
@@ -113,8 +114,26 @@ TextEditingController controllerLeadTime;
         .limit(1)
         .getDocuments();
     final List<DocumentSnapshot> documents = result.documents;
-    if (documents.length >= 1) {
+    if(gantiNama ==false){
+      Firestore.instance.runTransaction((Transaction transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(index);
+        await transaction.update(snapshot.reference, {
+          'namaBarang': value,
+          'kategoriBarang': selectedKategori,
+          'namaSupplier': selectedSupplier,
+          'hjBarang': controllerHj.text,
+          'hbBarang': controllerHb.text,
+          'jmlStok': controllerjmlStok.text,
+          'minStok': controllerminStok.text,
+          'waktu': formattedDate,
+        });
+      });
+      hasil = false;
+      berhasil = true;
+    }
+    else if (documents.length >= 1 ) {
       hasil = true;
+      berhasil = true;
     } else {
       Firestore.instance.runTransaction((Transaction transaction) async {
         DocumentSnapshot snapshot = await transaction.get(index);
@@ -125,12 +144,12 @@ TextEditingController controllerLeadTime;
           'hjBarang': controllerHj.text,
           'hbBarang': controllerHb.text,
           'jmlStok': controllerjmlStok.text,
-          'satuan': selectedSatuan,
           'minStok': controllerminStok.text,
           'waktu': formattedDate,
         });
       });
       hasil = false;
+      berhasil = true;
     }
 
     return null;
@@ -141,7 +160,7 @@ TextEditingController controllerLeadTime;
       drawer: SideDrawer(),
       appBar: AppBar(
         title: Text('Edit Produk'),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -156,7 +175,7 @@ TextEditingController controllerLeadTime;
                     size: Size(1500, 50), // button width and height
                     child: ClipRect(
                       child: Material(
-                        color: Colors.green,
+                        color: Colors.blue,
                         borderOnForeground: true, // button color
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -182,6 +201,7 @@ TextEditingController controllerLeadTime;
                       border: OutlineInputBorder(),
                       labelText: 'Nama Barang',
                     ),
+                    enabled: gantiNama,
                     controller: controllerNama,
                     validator: (controllerNama) {
                       update(index, controllerNama);
@@ -295,7 +315,7 @@ TextEditingController controllerLeadTime;
                     size: Size(1500, 50), // button width and height
                     child: ClipRect(
                       child: Material(
-                        color: Colors.green,
+                        color: Colors.blue,
                         borderOnForeground: true, // button color
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -331,51 +351,6 @@ TextEditingController controllerLeadTime;
                         return null;
                       }),
                 ),
-                StreamBuilder<QuerySnapshot>(
-                    stream: Firestore.instance.collection('satuan').snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return Text("Tidak bisa mendapatkan data");
-                      } else {
-                        List<DropdownMenuItem> satuanItems = [];
-                        for (int i = 0;
-                            i < snapshot.data.documents.length;
-                            i++) {
-                          DocumentSnapshot snap = snapshot.data.documents[i];
-                          satuanItems.add(DropdownMenuItem(
-                            child: Text(
-                              snap.documentID,
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            value: "${snap.documentID}",
-                          ));
-                        }
-                        return Container(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 10),
-                            child: DropdownButtonFormField(
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Satuan Barang'),
-                              value: selectedSatuan,
-                              items: satuanItems,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Satuan barang wajib diisi';
-                                }
-                                return null;
-                              },
-                              onChanged: (satuanValue) {
-                                setState(() {
-                                  selectedSatuan = satuanValue;
-                                });
-                              },
-                            ),
-                          ),
-                        );
-                      }
-                    }),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   child: TextFormField(
@@ -442,11 +417,12 @@ TextEditingController controllerLeadTime;
                     }),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  // ignore: deprecated_member_use
                   child: RaisedButton(
                     onPressed: () async {
                       if (_formKey.currentState.validate()) ;
                     },
-                    color: Colors.green,
+                    color: Colors.blue,
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 10),
                       child: Row(
@@ -503,8 +479,9 @@ TextEditingController controllerLeadTime;
                                               child: SizedBox(
                                                 height: 50,
                                                 width: 180,
+                                                // ignore: deprecated_member_use
                                                 child: RaisedButton(
-                                                  color: Colors.green,
+                                                  color: Colors.blue,
                                                   child: Text(
                                                     "Hapus",
                                                     style: TextStyle(
@@ -526,6 +503,7 @@ TextEditingController controllerLeadTime;
                                               child: SizedBox(
                                                 height: 50,
                                                 width: 180,
+                                                // ignore: deprecated_member_use
                                                 child: RaisedButton(
                                                   child: Text("Batal",
                                                       style: TextStyle(

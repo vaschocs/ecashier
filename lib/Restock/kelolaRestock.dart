@@ -43,7 +43,7 @@ class KelolaRestockPage extends StatelessWidget {
               ],
             ),
             title: Text('Kelola Restock'),
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.blue,
           ),
           body: TabBarView(
             children: [
