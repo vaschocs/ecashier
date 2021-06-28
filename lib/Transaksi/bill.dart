@@ -32,7 +32,6 @@ class BillPage extends StatefulWidget {
       this.jmlStok,
       this.minStok,
       this.namaSupplier,
-
       this.index});
 
   final String namaBarang;
@@ -49,11 +48,12 @@ class BillPage extends StatefulWidget {
 }
 
 class BillItem {
-  BillItem({this.namaBarang, this.hargaBarang, this.index});
+  BillItem({this.namaBarang, this.hargaBarang, this.indeksBaru,this.jumlahStok});
 
   final String namaBarang;
   final String hargaBarang;
-  final index;
+  final indeksBaru;
+  final String jumlahStok;
 }
 
 List<BillItem> items = [];
@@ -80,27 +80,12 @@ class _BillPageState extends State<BillPage> {
   var terima;
   var fixTerima;
   var intTerima;
+  var intStok;
 
-  String diterima;
-  String kembali;
 
-  Future<bool> add(List<BillItem> items) async {
-    items.map((item){
-      DateTime now = DateTime.now();
-      // String formattedDate = DateFormat('yyyy-MM-dd').format(now);
-      Firestore.instance.collection("detailBarang").document(now.toString()).setData({
-        'barang' : {
-          'namaBarang': item.namaBarang,
-        }
-      }
-      );
-    });
-  }
 
   void initState() {
     super.initState();
-
-
 
     jmlStok = widget.jmlStok;
     intStokLocal = int.parse(jmlStok);
@@ -112,22 +97,15 @@ class _BillPageState extends State<BillPage> {
 
     var newPrice = itemPrice.substring(2);
 
-    Firestore.instance.runTransaction((Transaction transaction) async {
-      DocumentSnapshot snapshot = await transaction.get(newIndex);
-      await transaction.update(snapshot.reference, {
-        'jmlStok': intStokLocal,
-      });
-    });
+
 
     if (countItem.containsKey(itemName)) {
       countItem[itemName] += 1;
     } else {
       countItem[itemName] = 1;
-      items.add(BillItem(namaBarang: itemName, hargaBarang: newPrice));
+      items.add(BillItem(namaBarang: itemName, hargaBarang: newPrice,indeksBaru: newIndex,jumlahStok:jmlStok));
     }
   }
-
-
 
   Iterable<DataRow> mapItemDataRows(List<BillItem> items) {
     Iterable<DataRow> dataRows = items.map((item) {
@@ -138,7 +116,8 @@ class _BillPageState extends State<BillPage> {
       harga = countItem[item.namaBarang] * intPrice;
       jmlHarga = jmlHarga + harga;
 
-
+      intStok = int.parse(item.jumlahStok);
+      assert(intStok is int);
 
       return DataRow(cells: [
         DataCell(
@@ -157,12 +136,18 @@ class _BillPageState extends State<BillPage> {
                 .runTransaction((Transaction transaction) async {
               DocumentSnapshot snapshot = await transaction.get(newIndex);
               await transaction.update(snapshot.reference, {
-                'jmlStok': intStokLocal + countItem[item.namaBarang],
+                'jmlStok':  intStok + countItem[item.namaBarang],
               });
             });
+            print(intStokLocal+countItem[item.namaBarang]);
 
-            jmlHarga = jmlHarga - harga;
             setState(() {
+              var newPrice = item.hargaBarang;
+              var fixPrice = newPrice.replaceAll(".", "");
+              intPrice = int.parse(fixPrice);
+              assert(intPrice is int);
+              harga = countItem[item.namaBarang] * intPrice;
+              jmlHarga = (jmlHarga - harga);
               items.remove(item);
               countItem.remove(item.namaBarang);
             });
@@ -181,6 +166,7 @@ class _BillPageState extends State<BillPage> {
     return dataRows;
   }
 
+
   @override
   Widget build(BuildContext context) {
     formattedDate = DateFormat('yyyy-MM-dd hh:mm:ss').format(now);
@@ -188,7 +174,7 @@ class _BillPageState extends State<BillPage> {
     return Scaffold(
       drawer: SideDrawer(),
       appBar: AppBar(
-        title: Text('Tambah Produk'),
+        title: Text('Transaksi'),
         backgroundColor: Colors.blue,
       ),
       body: Container(
@@ -340,11 +326,11 @@ class _BillPageState extends State<BillPage> {
                                   style: TextStyle(fontSize: 30),
                                 ),
                                 onPressed: () {
+
                                   showDialog(
                                       context: context,
                                       builder: (BuildContext konteksUTerima) {
                                         return AlertDialog(
-
                                           content: Stack(
                                             // ignore: deprecated_member_use
                                             overflow: Overflow.visible,
@@ -356,77 +342,84 @@ class _BillPageState extends State<BillPage> {
                                                   width: 400,
                                                   child: Column(
                                                     mainAxisSize:
-                                                    MainAxisSize.min,
+                                                        MainAxisSize.min,
                                                     children: <Widget>[
-                                                      Text('Jumlah Uang Diterima',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
-                                                      Container(height: 20,),
+                                                      Text(
+                                                        'Jumlah Uang Diterima',
+                                                        style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 30),
+                                                      ),
+                                                      Container(
+                                                        height: 20,
+                                                      ),
                                                       Padding(
                                                         padding: EdgeInsets
                                                             .symmetric(
-                                                            vertical: 10,
-                                                            horizontal: 10),
+                                                                vertical: 10,
+                                                                horizontal: 10),
                                                         child: TextFormField(
                                                           inputFormatters: [
                                                             CurrencyTextInputFormatter(
                                                                 locale: 'id',
                                                                 decimalDigits:
-                                                                0,
+                                                                    0,
                                                                 symbol: 'Rp')
                                                           ],
                                                           decoration:
-                                                          InputDecoration(
+                                                              InputDecoration(
                                                             border:
-                                                            OutlineInputBorder(),
+                                                                OutlineInputBorder(),
                                                             labelText:
-                                                            'Uang Diterima',
+                                                                'Uang Diterima',
                                                           ),
                                                           keyboardType:
-                                                          TextInputType
-                                                              .number,
+                                                              TextInputType
+                                                                  .number,
                                                           controller:
-                                                          uangTerima,
-                                                          validator:
-                                                              (value) {
+                                                              uangTerima,
+                                                          validator: (value) {
                                                             if (uangTerima ==
-                                                                null ||
-                                                                uangTerima.text.isEmpty) {
+                                                                    null ||
+                                                                uangTerima.text
+                                                                    .isEmpty) {
                                                               return 'Masukan jumlah uang yang diterima';
-                                                            } return null;
-
+                                                            }
+                                                            return null;
                                                           },
                                                         ),
                                                       ),
                                                       Row(
                                                         mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: <Widget>[
                                                           Padding(
                                                             padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
+                                                                const EdgeInsets
+                                                                    .all(8.0),
                                                             child: SizedBox(
                                                               height: 50,
                                                               width: 180,
                                                               child:
-                                                              RaisedButton(
-                                                                  color: Colors
-                                                                      .blue,
-                                                                  child:
-                                                                  Text(
-                                                                    "Bayar",
-                                                                    style: TextStyle(
-                                                                        fontWeight: FontWeight
-                                                                            .bold,
-                                                                        fontSize:
-                                                                        20,
-                                                                        color:
-                                                                        Colors.white),
-                                                                  ),
-                                                                  onPressed:
-                                                                      () {
-
-                                                                    setState(
+                                                                  RaisedButton(
+                                                                      color: Colors
+                                                                          .blue,
+                                                                      child:
+                                                                          Text(
+                                                                        "Bayar",
+                                                                        style: TextStyle(
+                                                                            fontWeight: FontWeight
+                                                                                .bold,
+                                                                            fontSize:
+                                                                                20,
+                                                                            color:
+                                                                                Colors.white),
+                                                                      ),
+                                                                      onPressed:
+                                                                          () {
+                                                                        setState(
                                                                             () {
                                                                           terima = uangTerima
                                                                               .text
@@ -437,176 +430,174 @@ class _BillPageState extends State<BillPage> {
                                                                           intTerima =
                                                                               int.parse(fixTerima);
                                                                           assert(intTerima
-                                                                          is int);
+                                                                              is int);
                                                                         });
-                                                                    if (formKey.currentState.validate()){
-
-                                                                      Navigator.of(konteksUTerima).pop();
-                                                                      showDialog(context: context,
-                                                                          builder:
-                                                                              (BuildContext konteksBill) {
-                                                                            return AlertDialog(
-                                                                              content: Stack(
-                                                                                // ignore: deprecated_member_use
-                                                                                overflow: Overflow.visible,
-                                                                                children: <Widget>[
-                                                                                  Form(
-                                                                                    child: Container(
-                                                                                      margin: const EdgeInsets.all(10.0),
-                                                                                      color: Colors.white,
-                                                                                      height: 500,
-                                                                                      width: 400,
-                                                                                      child: Column(
-                                                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                                                        children: <Widget>[
-                                                                                          Container(
-                                                                                            child: Icon(
-                                                                                              Icons.check_circle,
-                                                                                              color: Colors.blue,
-                                                                                              size: 50,
-                                                                                            ),
-                                                                                          ),
-                                                                                          Container(
-                                                                                            height: 40,
-                                                                                          ),
-                                                                                          Text('Transaksi Berhasil',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30), textAlign: TextAlign.center),
-                                                                                          Text(formattedDate),
-                                                                                          Container(
-                                                                                            height: 60,
-                                                                                          ),
-                                                                                          Row(
-                                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                        if (formKey
+                                                                            .currentState
+                                                                            .validate()) {
+                                                                          Navigator.of(konteksUTerima)
+                                                                              .pop();
+                                                                          showDialog(
+                                                                              context: context,
+                                                                              builder: (BuildContext konteksBill) {
+                                                                                return AlertDialog(
+                                                                                  content: Stack(
+                                                                                    // ignore: deprecated_member_use
+                                                                                    overflow: Overflow.visible,
+                                                                                    children: <Widget>[
+                                                                                      Form(
+                                                                                        child: Container(
+                                                                                          margin: const EdgeInsets.all(10.0),
+                                                                                          color: Colors.white,
+                                                                                          height: 500,
+                                                                                          width: 400,
+                                                                                          child: Column(
+                                                                                            mainAxisAlignment: MainAxisAlignment.center,
                                                                                             children: <Widget>[
                                                                                               Container(
-                                                                                                child: Text(
-                                                                                                  "Pembayaran",
-                                                                                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                                                                                child: Icon(
+                                                                                                  Icons.check_circle,
+                                                                                                  color: Colors.blue,
+                                                                                                  size: 50,
                                                                                                 ),
                                                                                               ),
                                                                                               Container(
-                                                                                                child: Text("Tunai", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                                                                                              )
-                                                                                            ],
-                                                                                          ),
-                                                                                          Container(
-                                                                                            height: 20,
-                                                                                          ),
-                                                                                          Row(
-                                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                            children: <Widget>[
-                                                                                              Container(
-                                                                                                child: Text(
-                                                                                                  "Total Tagihan",
-                                                                                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                                                                                                ),
+                                                                                                height: 40,
                                                                                               ),
+                                                                                              Text('Transaksi Berhasil', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30), textAlign: TextAlign.center),
+                                                                                              Text(formattedDate),
                                                                                               Container(
-                                                                                                child: Text('Rp' + jmlHarga.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                                                                                              )
-                                                                                            ],
-                                                                                          ),
-                                                                                          Container(
-                                                                                            height: 20,
-                                                                                          ),
-                                                                                          Row(
-                                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                            children: <Widget>[
-                                                                                              Container(
-                                                                                                child: Text(
-                                                                                                  "Diterima",
-                                                                                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                                                                                                ),
+                                                                                                height: 60,
                                                                                               ),
-                                                                                              Container(
-                                                                                                child: Text(uangTerima.text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                                                                                              )
-                                                                                            ],
-                                                                                          ),
-                                                                                          Container(
-                                                                                            height: 20,
-                                                                                          ),
-                                                                                          Row(
-                                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                            children: <Widget>[
-                                                                                              Container(
-                                                                                                child: Text(
-                                                                                                  "Kembalian",
-                                                                                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                                                                                                ),
-                                                                                              ),
-                                                                                              Container(
-                                                                                                child: Text('Rp' + (intTerima - jmlHarga).toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                                                                                              )
-                                                                                            ],
-                                                                                          ),
-                                                                                          Container(
-                                                                                            height: 20,
-                                                                                          ),
-                                                                                          Row(
-                                                                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                                                            children: <Widget>[
-                                                                                              Padding(
-                                                                                                padding: const EdgeInsets.all(8.0),
-                                                                                                child: SizedBox(
-                                                                                                  height: 50,
-                                                                                                  width: 384,
-                                                                                                  child: RaisedButton(
-                                                                                                    color: Colors.blue,
+                                                                                              Row(
+                                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                children: <Widget>[
+                                                                                                  Container(
                                                                                                     child: Text(
-                                                                                                      "OK",
-                                                                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
+                                                                                                      "Pembayaran",
+                                                                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                                                                                                     ),
-                                                                                                    onPressed: () async {
-                                                                                                      await add(items);
-                                                                                                      // setState(() {
-                                                                                                      //   uangTerima.text = '';
-                                                                                                      //   jmlHarga=0;
-                                                                                                      // });
-                                                                                                      // Navigator.of(konteksBill).pop();
-                                                                                                    },
                                                                                                   ),
-                                                                                                ),
+                                                                                                  Container(
+                                                                                                    child: Text("Tunai", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                  )
+                                                                                                ],
+                                                                                              ),
+                                                                                              Container(
+                                                                                                height: 20,
+                                                                                              ),
+                                                                                              Row(
+                                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                children: <Widget>[
+                                                                                                  Container(
+                                                                                                    child: Text(
+                                                                                                      "Total Tagihan",
+                                                                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                  Container(
+                                                                                                    child: Text('Rp' + jmlHarga.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                  )
+                                                                                                ],
+                                                                                              ),
+                                                                                              Container(
+                                                                                                height: 20,
+                                                                                              ),
+                                                                                              Row(
+                                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                children: <Widget>[
+                                                                                                  Container(
+                                                                                                    child: Text(
+                                                                                                      "Diterima",
+                                                                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                  Container(
+                                                                                                    child: Text(uangTerima.text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                  )
+                                                                                                ],
+                                                                                              ),
+                                                                                              Container(
+                                                                                                height: 20,
+                                                                                              ),
+                                                                                              Row(
+                                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                children: <Widget>[
+                                                                                                  Container(
+                                                                                                    child: Text(
+                                                                                                      "Kembalian",
+                                                                                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                  Container(
+                                                                                                    child: Text('Rp' + (intTerima - jmlHarga).toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                  )
+                                                                                                ],
+                                                                                              ),
+                                                                                              Container(
+                                                                                                height: 20,
+                                                                                              ),
+                                                                                              Row(
+                                                                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                                                children: <Widget>[
+                                                                                                  Padding(
+                                                                                                    padding: const EdgeInsets.all(8.0),
+                                                                                                    child: SizedBox(
+                                                                                                      height: 50,
+                                                                                                      width: 384,
+                                                                                                      child: RaisedButton(
+                                                                                                        color: Colors.blue,
+                                                                                                        child: Text(
+                                                                                                          "OK",
+                                                                                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
+                                                                                                        ),
+                                                                                                        onPressed: () async {
+                                                                                                          setState(() {
+                                                                                                            uangTerima.text = '';
+                                                                                                            jmlHarga = 0;
+                                                                                                          });
+                                                                                                          Navigator.of(konteksBill).pop();
+                                                                                                        },
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                ],
                                                                                               ),
                                                                                             ],
                                                                                           ),
-                                                                                        ],
+                                                                                        ),
                                                                                       ),
-                                                                                    ),
+                                                                                    ],
                                                                                   ),
-                                                                                ],
-                                                                              ),
-                                                                            );
-                                                                          });
-
-                                                                    };
-
-
-
-                                                                  }),
+                                                                                );
+                                                                              });
+                                                                        }
+                                                                        ;
+                                                                      }),
                                                             ),
                                                           ),
                                                           Padding(
                                                             padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
+                                                                const EdgeInsets
+                                                                    .all(8.0),
                                                             child: SizedBox(
                                                               height: 50,
                                                               width: 180,
                                                               child:
-                                                              RaisedButton(
+                                                                  RaisedButton(
                                                                 child: Text(
                                                                     "Batal",
                                                                     style: TextStyle(
                                                                         fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
+                                                                            FontWeight
+                                                                                .bold,
                                                                         fontSize:
-                                                                        20,
+                                                                            20,
                                                                         color: Colors
                                                                             .black)),
                                                                 onPressed: () {
                                                                   Navigator.of(
-                                                                      konteksUTerima)
+                                                                          konteksUTerima)
                                                                       .pop();
                                                                 },
                                                               ),
@@ -657,10 +648,5 @@ class _BillPageState extends State<BillPage> {
     );
   }
 
-  void cekUang() {
-    if (intTerima < jmlHarga) {
-      uangCukup = false;
-    }
-    uangCukup = true;
-  }
+
 }

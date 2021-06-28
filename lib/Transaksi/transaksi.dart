@@ -1,4 +1,4 @@
-
+import 'package:ecashier/data.dart';
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,14 +7,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'bill.dart';
 
 void main() => runApp(MyApp());
-var intStok;
-var itemName;
 
 class MyApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
-    itemName = null;
     return MaterialApp(
         title: 'Transaksi',
         theme: ThemeData(
@@ -27,229 +23,205 @@ class MyApp extends StatelessWidget {
   }
 }
 
+Future getData() async {
+  await Firestore.instance.collection('barang').snapshots().listen((documents) {
+    TransaksiItem.clear();
+    if (documents.documents.length != 0) {
+      documents.documents.forEach((d) {
+        Map document = new Map();
+        document['namaBarang'] = d['namaBarang'];
+        document['hbBarang'] = d['hbBarang'];
+        document['minStok'] = d['minStok'];
+        document['jmlStok'] = d['jmlStok'];
+        TransaksiItem.add(document);
+      });
+    }
+  });
+}
+
+class BillItem {
+  BillItem({this.nama, this.harga, this.jumlahStok});
+
+  final String nama;
+  final String harga;
+  final String jumlahStok;
+}
+
+// class Transaksi {
+//   Transaksi({this.namaBarang, this.hbBarang, this.jmlStok, this.minStok});
+//
+//   String namaBarang;
+//   String hbBarang;
+//
+//   String jmlStok;
+//   String minStok;
+//
+//   Map<String, dynamic> toMap() {
+//     return {
+//       'namaBarang': namaBarang,
+//       'hbBarang': hbBarang,
+//       'jmlStok': jmlStok,
+//       'minStok': minStok
+//     };
+//   }
+// }
+
+List<Map> TransaksiItem = new List<Map>();
+List<Map> items = new List<Map>();
 
 class TransaksiPage extends StatefulWidget {
-  TransaksiPage(
-      {this.namaBarang,
-        this.katBarang,
-        this.hjBarang,
-        this.hbBarang,
-        this.jmlStok,
-        this.minStok,
-        this.namaSupplier,
-
-        this.index});
+  TransaksiPage({this.namaBarang});
 
   final String namaBarang;
-  final String katBarang;
-  final String hjBarang;
-  final String hbBarang;
-  final String jmlStok;
-  final String minStok;
-  final index;
-
-  final String namaSupplier;
   @override
   _TransaksiPageState createState() => _TransaksiPageState();
 }
 
-class _TransaksiPageState extends State<TransaksiPage> {
+List dataTable;
 
-  var selectedKategori;
+class _TransaksiPageState extends State<TransaksiPage> {
+  String namaBarang;
+  List cards = new List.generate(TransaksiItem.length, (int index) => new StateCard(index)).toList();
 
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   void initState() {
     super.initState();
+    getData();
+    Map isiCard = new Map();
+    isiCard['namaBarang'] = 'belum ada';
+    isiCard['hbBarang'] = 'belum ada';
+    isiCard['minStok'] = 'belum ada';
+    isiCard['jmlStok'] = 'belum ada';
+    items.add(isiCard);
 
+    dataTable = new List.generate(items.length, (int index) => new StateTable(index)).toList();
   }
 
+  var harga;
+  var jmlHarga;
 
+  // Iterable<DataRow> mapItemDataRows(List<Map> items) {
+  //   Iterable<DataRow> dataRows = items.map((item) {
+  //     var newPrice = item[i]['namaBarang'];
+  //     var fixPrice = newPrice.replaceAll(".", "");
+  //     intPrice = int.parse(fixPrice);
+  //     assert(intPrice is int);
+  //     harga = countItem[item.namaBarang] * intPrice;
+  //     jmlHarga = jmlHarga + harga;
+  //
+  //     intStok = int.parse(item.jumlahStok);
+  //     assert(intStok is int);
+  //
+  //     return DataRow(cells: [
+  //       DataCell(
+  //         Text(
+  //           item.namaBarang,
+  //         ),
+  //       ),
+  //       DataCell(
+  //         Text(intPrice.toString()),
+  //       ),
+  //       DataCell(Text(countItem[item.namaBarang].toString())),
+  //       DataCell(Text((harga).toString())),
+  //       DataCell(TextButton.icon(
+  //         onPressed: () async {
+  //           await Firestore.instance
+  //               .runTransaction((Transaction transaction) async {
+  //             DocumentSnapshot snapshot = await transaction.get(newIndex);
+  //             await transaction.update(snapshot.reference, {
+  //               'jmlStok':  intStok + countItem[item.namaBarang],
+  //             });
+  //           });
+  //           print(intStokLocal+countItem[item.namaBarang]);
+  //
+  //           setState(() {
+  //             var newPrice = item.hargaBarang;
+  //             var fixPrice = newPrice.replaceAll(".", "");
+  //             intPrice = int.parse(fixPrice);
+  //             assert(intPrice is int);
+  //             harga = countItem[item.namaBarang] * intPrice;
+  //             jmlHarga = (jmlHarga - harga);
+  //             items.remove(item);
+  //             countItem.remove(item.namaBarang);
+  //           });
+  //         },
+  //         icon: Icon(
+  //           Icons.delete,
+  //           color: Colors.red,
+  //         ),
+  //         label: Text(
+  //           'Hapus',
+  //           style: TextStyle(color: Colors.red),
+  //         ),
+  //       )),
+  //     ]);
+  //   });
+  //   return dataRows;
+  // }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext iniKonteks) {
     return Scaffold(
-      drawer: SideDrawer(),
-      appBar: AppBar(
-        title: Text('Transaksi'),
-        backgroundColor: Colors.blue,
-
-      ),
-      body: Column(
-        children: <Widget>[
-          SingleChildScrollView(
-
-            child: Form(
-              key: formKey,
-              child: Container(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    StreamBuilder<QuerySnapshot>(
-                        stream: Firestore.instance
-                            .collection('kategori')
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return Text("Tidak bisa mendapatkan data");
-                          } else {
-                            List<DropdownMenuItem> kategoriItems = [];
-                            for (int i = 0;
-                            i < snapshot.data.documents.length;
-                            i++) {
-                              DocumentSnapshot snap =
-                              snapshot.data.documents[i];
-                              kategoriItems.add(DropdownMenuItem(
-                                child: Text(
-                                  snap.data['namaKategori'],
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                value: "${snap.data['namaKategori']}",
-                              ));
-                            }
-                            return Container(
-                              child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 10),
-                                  child: Column(
-                                    children: <Widget>[
-                                      DropdownButtonFormField(
-                                        decoration: InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelText: 'Pilih Kategori',
-                                        ),
-                                        value: selectedKategori,
-                                        items: kategoriItems,
-                                        onChanged: (kategoriValue) {
-                                          setState(() {
-                                            selectedKategori = kategoriValue;
-                                          });
-                                        },
-                                      ),
-
-                                    ],
-                                  )),
-                            );
-                          }
-                        }),
-                  ],
-                ),
+        drawer: SideDrawer(),
+        appBar: AppBar(
+          title: Text('Transaksi'),
+          backgroundColor: Colors.blue,
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: TextField(
+                    onChanged: (val) {
+                      // initiateSearch(val);
+                    },
+                    decoration: InputDecoration(
+                        prefixIcon: IconButton(
+                          color: Colors.black,
+                          icon: Icon(Icons.arrow_back),
+                          iconSize: 20.0,
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        contentPadding: EdgeInsets.only(left: 25.0),
+                        hintText: "Cari Produk",
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(4.0)))),
               ),
-            ),
-          ),
-          Padding(
-
-            padding: EdgeInsets.symmetric(
-                vertical: 10, horizontal: 10),
-            child: Container(
-              height: 650,
-              width: 1500,
-              decoration: BoxDecoration(
+              Container(
+                decoration: BoxDecoration(
                   border: Border.all(
                     color: Colors.grey,
-                  )),
-              child: StreamBuilder(
-                stream: Firestore.instance
-                    .collection('barang').where('kategoriBarang',isEqualTo: selectedKategori).snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot>
-                    snapshot) {
-                  print(selectedKategori);
-                  if (!snapshot.hasData)
-                    return new Container(
-                        child: Center(
-                          child:
-                          CircularProgressIndicator(),
-                        ));
-                  return new TaskList(
-                    document:
-                    snapshot.data.documents,
-                  );
-
-                },
+                    width: 3,
+                  ),
+                ),
+                width: 1265,
+                height: 350,
+                child: ListView(
+                  children: cards,
+                ),
               ),
-            ),
+              Container(
+                height: 5,
+              ),
+              Container(
+                width: 1265,
+                height: 330,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 3,
+                  ),
+                ),
+               child: ListView(
+                  children: dataTable,
+                )
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class TaskList extends StatelessWidget {
-  TaskList({this.document});
-  final List<DocumentSnapshot> document;
-
-
-  @override
-  Widget build(BuildContext context) {
-    return new ListView.builder(
-      itemCount: document.length,
-      itemBuilder: (
-          BuildContext context,
-          int i,
-          ) {
-        String namaBarang = document[i].data['namaBarang'].toString();
-        String hjBarang = document[i].data['hjBarang'].toString();
-        String minStok = document[i].data['minStok'].toString();
-        String katBarang = document[i].data['kategoriBarang'].toString();
-        String hbBarang = document[i].data['hbBarang'].toString();
-        String jmlStok = document[i].data['jmlStok'].toString();
-
-
-
-        return new Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          child: Container(
-            color: Colors.white60,
-            child: Card(
-                shape: Border.all(color: Colors.blue),
-                child: ListTile(
-                  onTap: () {
-                    intStok = int.parse(jmlStok);
-                    assert(intStok is int);
-
-                    if(intStok == 0){
-                      final snackBar =
-                      SnackBar(content: Text('Stok Barang Habis'));
-                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                      return true;
-                    }else {
-                      Navigator.of(context).push(new MaterialPageRoute(
-                          builder: (BuildContext context)=> new BillPage(
-                            namaBarang: namaBarang,
-                            katBarang: katBarang,
-                            hjBarang : hjBarang,
-                            hbBarang : hbBarang,
-                            jmlStok: jmlStok,
-                            minStok: minStok,
-
-                            index : document[i].reference,
-                          )
-                      ));
-
-
-                    }
-                    return null;
-
-                  },
-                  leading: Icon(Icons.format_list_bulleted),
-                  title: Text(
-                    namaBarang,
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  subtitle: Text(
-                     hjBarang,
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  trailing: Text(
-                    'Stok : ' + jmlStok,
-                    style: TextStyle(fontSize: 20),
-                  ),
-                )),
-          ),
-        );
-      },
-    );
+        ));
   }
 }

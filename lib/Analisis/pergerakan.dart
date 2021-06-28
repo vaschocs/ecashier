@@ -1,10 +1,7 @@
-
 import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart';
-
 
 void main() => runApp(MyApp());
 var intStok;
@@ -47,74 +44,15 @@ class _AnalisPageState extends State<AnalisPage> {
       appBar: AppBar(
         title: Text(
           'Analisis Produk',
-          style: TextStyle(fontSize: 30),
         ),
         backgroundColor: Colors.blue,
       ),
       body: Column(
         children: <Widget>[
-          SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Container(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    StreamBuilder<QuerySnapshot>(
-                        stream: Firestore.instance
-                            .collection('kategori')
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return Text("Tidak bisa mendapatkan data");
-                          } else {
-                            List<DropdownMenuItem> kategoriItems = [];
-                            for (int i = 0;
-                                i < snapshot.data.documents.length;
-                                i++) {
-                              DocumentSnapshot snap =
-                                  snapshot.data.documents[i];
-                              kategoriItems.add(DropdownMenuItem(
-                                child: Text(
-                                  snap.data['namaKategori'],
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                value: "${snap.data['namaKategori']}",
-                              ));
-                            }
-                            return Container(
-                              child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 10),
-                                  child: Column(
-                                    children: <Widget>[
-                                      DropdownButtonFormField(
-                                        decoration: InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelText: 'Pilih Kategori',
-                                        ),
-                                        value: selectedKategori,
-                                        items: kategoriItems,
-                                        onChanged: (kategoriValue) {
-                                          setState(() {
-                                            selectedKategori = kategoriValue;
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  )),
-                            );
-                          }
-                        }),
-                  ],
-                ),
-              ),
-            ),
-          ),
           Padding(
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: Container(
-              height: 650,
+              height: 730,
               width: 1500,
               decoration: BoxDecoration(
                   border: Border.all(
@@ -124,6 +62,7 @@ class _AnalisPageState extends State<AnalisPage> {
                 stream: Firestore.instance
                     .collection('barang')
                     .where('kategoriBarang', isEqualTo: selectedKategori)
+                    .orderBy('kategoriPergerakan', descending: true)
                     .snapshots(),
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -163,63 +102,91 @@ class TaskList extends StatelessWidget {
         String stokAwal = document[i].data['stokAwal'].toString();
         String stokPakai = document[i].data['stokPakai'].toString();
         String waktu = document[i].data['waktu'].toString();
+        String analisis = document[i].data['kategoriPergerakan'].toString();
+        String waktuPesan = document[i].data['waktuPesan'].toString();
+        String waktuPesanLama = document[i].data['waktuPesanLama'].toString();
+        String rataJual = document[i].data['rataPenjualan'].toString();
+        String rataJualTinggi =
+            document[i].data['rataPenjualanTinggi'].toString();
 
-        TextEditingController waktuPesan;
+        var ltDemand;
+        ltDemand = int.parse(waktuPesan) * int.parse(rataJual);
+
+        var safetyStock;
+        safetyStock =
+            (((int.parse(waktuPesanLama) * int.parse(rataJualTinggi))) -
+                (int.parse(waktuPesan) * int.parse(rataJual)));
+
+        var minimalStok;
+        minimalStok = ltDemand + safetyStock;
 
         var intJumlah = int.parse(jmlStok);
         assert(intJumlah is int);
 
         var intStokAwal = int.parse(stokAwal);
-        assert(intStokAwal is int);
 
         var intStokPakai = int.parse(stokPakai);
-        assert(intStokPakai is int);
 
         var rata2;
         rata2 = (intStokAwal + intJumlah) / 2;
 
-        var TORp;
-        TORp = intStokPakai / rata2;
-        var sTORp = TORp.toString().substring(0, 4);
+        var torp;
+        torp = intStokPakai / rata2;
 
         DateTime startDate = DateTime.parse(waktu);
         DateTime endDate = DateTime.now();
         final selisihHari = endDate.difference(startDate).inDays;
 
-        var Wsp;
-        Wsp = selisihHari / TORp;
+        var wsp;
+        wsp = selisihHari / torp;
 
-        var TOR;
-        TOR = 365 / Wsp;
-        var sTOR = TOR.toString().substring(0, 4);
+        var tor;
+        tor = 365 / wsp;
 
         String kategori;
 
+        Future<bool> update() async {
+          Firestore.instance.runTransaction((Transaction transaction) async {
+            DocumentSnapshot snapshot =
+                await transaction.get(document[i].reference);
+            await transaction.update(snapshot.reference,
+                {'kategoriPergerakan': kategori, 'minStok': minimalStok});
+          });
+
+          return null;
+        }
+
         Future hasilKategori() {
-          if (TOR > 3) {
+          if (tor > 3) {
             kategori = 'Sangat Laku';
-          } else if (TOR <= 3 || TOR >= 1) {
+          } else if (tor <= 1) {
+            kategori = 'Kurang Laku';
+          } else if (tor <= 3) {
             kategori = 'Laku';
-          } else {
-            kategori = 'Tidak Laku';
           }
+          return null;
         }
 
         GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-        GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
         return new Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Container(
             color: Colors.white60,
             child: Card(
-                shape: Border.all(color: Colors.blue),
+                color: (analisis == 'Kurang Laku')
+                    ? Colors.red[200]
+                    : (analisis == 'Laku')
+                        ? Colors.lightGreen[200]
+                        : (analisis == "Sangat Laku")
+                            ? Colors.cyan[50]
+                            : Colors.amber[200],
                 child: ListTile(
                     onTap: () {
-
                       hasilKategori();
                       showDialog(
                           context: context,
-                          builder: (BuildContext AnalisisBarang) {
+                          builder: (BuildContext analisisbarang) {
                             return AlertDialog(
                               content: Stack(
                                 // ignore: deprecated_member_use
@@ -267,14 +234,14 @@ class TaskList extends StatelessWidget {
                                                           .spaceBetween,
                                                   children: <Widget>[
                                                     Text(
-                                                      'Rata Persediaan ',
+                                                      'Jumlah Stok',
                                                       style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           fontSize: 20),
                                                     ),
                                                     Text(
-                                                      rata2.toString(),
+                                                      jmlStok,
                                                       style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -291,62 +258,14 @@ class TaskList extends StatelessWidget {
                                                           .spaceBetween,
                                                   children: <Widget>[
                                                     Text(
-                                                      'TORp',
+                                                      'Total Penjualan',
                                                       style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
                                                           fontSize: 20),
                                                     ),
                                                     Text(
-                                                      sTORp,
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 20),
-                                                    )
-                                                  ],
-                                                ),
-                                                Container(
-                                                  height: 20,
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: <Widget>[
-                                                    Text(
-                                                      'Wsp',
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 20),
-                                                    ),
-                                                    Text(
-                                                      Wsp.toString(),
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 20),
-                                                    )
-                                                  ],
-                                                ),
-                                                Container(
-                                                  height: 20,
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: <Widget>[
-                                                    Text(
-                                                      'TOR',
-                                                      style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 20),
-                                                    ),
-                                                    Text(
-                                                      sTOR,
+                                                      stokPakai,
                                                       style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -370,7 +289,31 @@ class TaskList extends StatelessWidget {
                                                           fontSize: 20),
                                                     ),
                                                     Text(
-                                                      kategori,
+                                                      kategori.toString(),
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 20),
+                                                    )
+                                                  ],
+                                                ),
+                                                Container(
+                                                  height: 20,
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: <Widget>[
+                                                    Text(
+                                                      'Minimal Stok',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 20),
+                                                    ),
+                                                    Text(
+                                                      minimalStok.toString(),
                                                       style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -382,409 +325,46 @@ class TaskList extends StatelessWidget {
                                                   height: 20,
                                                 ),
                                                 Container(
-                                                  width: 800,
+                                                  width: 450,
                                                   decoration: BoxDecoration(
                                                       border: Border.all(
                                                     color: Colors.grey,
                                                   )),
-                                                  child: Column(
-                                                    children: <Widget>[
-                                                      Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: <Widget>[
-                                                          Padding(
-                                                            padding: EdgeInsets
-                                                                .symmetric(
-                                                                    vertical:
-                                                                        10,
-                                                                    horizontal:
-                                                                        10),
-                                                            child: Text(
-                                                              'Keterangan',
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  fontSize: 20),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      Container(
-                                                        height: 5,
-                                                      ),
-                                                      Column(
-                                                        children: <Widget>[
-                                                          Row(
-                                                            children: <Widget>[
-                                                              Container(
-                                                                width: 180,
-                                                                child: Padding(
-                                                                  padding: EdgeInsets.symmetric(
-                                                                      vertical:
-                                                                          10,
-                                                                      horizontal:
-                                                                          10),
-                                                                  child: Text(
-                                                                    'Rata Persediaan',
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            20,
-                                                                        fontWeight:
-                                                                            FontWeight.bold),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              Container(
-                                                                width: 20,
-                                                                child: Text(
-                                                                  ':',
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          20,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                ),
-                                                              ),
-                                                              Container(
-                                                                child: Text(
-                                                                  'Rata - rata persediaan barang',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        20,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          Row(
-                                                            children: <Widget>[
-                                                              Container(
-                                                                  width: 180,
-                                                                  child:
-                                                                      Padding(
-                                                                    padding: EdgeInsets.symmetric(
-                                                                        vertical:
-                                                                            10,
-                                                                        horizontal:
-                                                                            10),
-                                                                    child: Text(
-                                                                      'TORp',
-                                                                      style: TextStyle(
-                                                                          fontSize:
-                                                                              20,
-                                                                          fontWeight:
-                                                                              FontWeight.bold),
-                                                                    ),
-                                                                  )),
-                                                              Container(
-                                                                width: 20,
-                                                                child: Text(
-                                                                  ':',
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          20,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                ),
-                                                              ),
-                                                              Container(
-                                                                child: Text(
-                                                                  'Perputaran persediaan selama periode pengamatan',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        20,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          Row(
-                                                            children: <Widget>[
-                                                              Container(
-                                                                  width: 180,
-                                                                  child:
-                                                                      Padding(
-                                                                    padding: EdgeInsets.symmetric(
-                                                                        vertical:
-                                                                            10,
-                                                                        horizontal:
-                                                                            10),
-                                                                    child: Text(
-                                                                      'Wsp',
-                                                                      style: TextStyle(
-                                                                          fontSize:
-                                                                              20,
-                                                                          fontWeight:
-                                                                              FontWeight.bold),
-                                                                    ),
-                                                                  )),
-                                                              Container(
-                                                                width: 20,
-                                                                child: Text(
-                                                                  ':',
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          20,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                ),
-                                                              ),
-                                                              Container(
-                                                                child: Text(
-                                                                  'Lamanya waktu penyimpanan selama periode pengamatan',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        20,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          Row(
-                                                            children: <Widget>[
-                                                              Container(
-                                                                  width: 180,
-                                                                  child:
-                                                                      Padding(
-                                                                    padding: EdgeInsets.symmetric(
-                                                                        vertical:
-                                                                            10,
-                                                                        horizontal:
-                                                                            10),
-                                                                    child: Text(
-                                                                      'TOR',
-                                                                      style: TextStyle(
-                                                                          fontSize:
-                                                                              20,
-                                                                          fontWeight:
-                                                                              FontWeight.bold),
-                                                                    ),
-                                                                  )),
-                                                              Container(
-                                                                width: 20,
-                                                                child: Text(
-                                                                  ':',
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          20,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold),
-                                                                ),
-                                                              ),
-                                                              Container(
-                                                                child: Text(
-                                                                  'Perputaran persediaan selama 1 tahun',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        20,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      )
-                                                    ],
-                                                  ),
                                                 )
                                               ],
                                             ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.end,
-                                              children: <Widget>[
-                                                Padding(
-                                                  padding: EdgeInsets.symmetric(
-                                                      vertical: 10,
-                                                      horizontal: 10),
-                                                  child: RaisedButton(
-                                                    onPressed: () async {
-                                                      Navigator.of(
-                                                              AnalisisBarang)
-                                                          .pop();
-
-                                                      showDialog(
-                                                          context: context,
-                                                          builder: (BuildContext minimalstok) {
-                                                            return AlertDialog(
-                                                              title: Text("Pengaturan Minimum Stok"),
-                                                              content: Stack(
-                                                                // ignore: deprecated_member_use
-                                                                overflow: Overflow.visible,
-                                                                children: <Widget>[
-                                                                  Form(
-                                                                    key: formKey,
-                                                                    child: Container(
-                                                                      height: 150,
-                                                                      width: 400,
-                                                                      child: Column(
-                                                                        mainAxisSize: MainAxisSize.min,
-                                                                        children: <Widget>[
-                                                                          Padding(
-                                                                            padding:
-                                                                            EdgeInsets.symmetric(
-                                                                                vertical: 1),
-                                                                            child: TextFormField(
-                                                                              keyboardType: TextInputType.number,
-                                                                              textCapitalization:
-                                                                              TextCapitalization
-                                                                                  .words,
-                                                                              decoration:
-                                                                              InputDecoration(
-                                                                                border:
-                                                                                OutlineInputBorder(),
-                                                                                labelText:
-                                                                                'Waktu Pemesanan',
-                                                                              ),
-
-                                                                              controller: waktuPesan,
-                                                                            ),
-                                                                          ),
-                                                                          Row(
-                                                                            mainAxisAlignment:
-                                                                            MainAxisAlignment
-                                                                                .center,
-                                                                            children: <Widget>[
-                                                                              Padding(
-                                                                                padding:
-                                                                                const EdgeInsets
-                                                                                    .all(8.0),
-                                                                                child: SizedBox(
-                                                                                  height: 50,
-                                                                                  width: 180,
-                                                                                  child: RaisedButton(
-                                                                                    color: Colors.blue,
-                                                                                    child: Text(
-                                                                                      "Edit",
-                                                                                      style: TextStyle(
-                                                                                          fontWeight:
-                                                                                          FontWeight
-                                                                                              .bold,
-                                                                                          fontSize: 20,
-                                                                                          color: Colors
-                                                                                              .white),
-                                                                                    ),
-                                                                                    onPressed:
-                                                                                        () async {
-                                                                                      if (_formKey
-                                                                                          .currentState
-                                                                                          .validate()) ;
-                                                                                    },
-                                                                                  ),
-                                                                                ),
-                                                                              ),
-                                                                              Padding(
-                                                                                padding:
-                                                                                const EdgeInsets
-                                                                                    .all(8.0),
-                                                                                child: SizedBox(
-                                                                                  height: 50,
-                                                                                  width: 180,
-                                                                                  child: RaisedButton(
-                                                                                    child: Text("Batal",
-                                                                                        style: TextStyle(
-                                                                                            fontWeight:
-                                                                                            FontWeight
-                                                                                                .bold,
-                                                                                            fontSize:
-                                                                                            20,
-                                                                                            color: Colors
-                                                                                                .black)),
-                                                                                    onPressed: () {
-                                                                                      Navigator.of(
-                                                                                          minimalstok)
-                                                                                          .pop();
-                                                                                    },
-                                                                                  ),
-                                                                                ),
-                                                                              ),
-                                                                            ],
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            );
-                                                          });
-                                                    },
-                                                    color: Colors.blue,
-                                                    child: Padding(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                              vertical: 10),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: <Widget>[
-                                                          Text(
-                                                            'Minimal Stok',
-                                                            style: TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              color:
-                                                                  Colors.white,
-                                                            ),
-                                                          ),
-                                                        ],
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 10, horizontal: 10),
+                                              // ignore: deprecated_member_use
+                                              child: RaisedButton(
+                                                onPressed: () async {
+                                                  print('tes' + tor.toString());
+                                                  update();
+                                                  Navigator.of(analisisbarang)
+                                                      .pop();
+                                                },
+                                                color: Colors.blue,
+                                                child: Padding(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            vertical: 10),
+                                                    child: Container(
+                                                      alignment:
+                                                          Alignment.center,
+                                                      width: 400,
+                                                      child: Text(
+                                                        'OK',
+                                                        style: TextStyle(
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: Colors.white,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding: EdgeInsets.symmetric(
-                                                      vertical: 10,
-                                                      horizontal: 10),
-                                                  child: RaisedButton(
-                                                    onPressed: () async {
-                                                      Navigator.of(
-                                                          AnalisisBarang)
-                                                          .pop();
-
-                                                    },
-                                                    color: Colors.red,
-                                                    child: Padding(
-                                                      padding:
-                                                      EdgeInsets.symmetric(
-                                                          vertical: 10),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                        children: <Widget>[
-                                                          Text(
-                                                            'Keluar',
-                                                            style: TextStyle(
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                              FontWeight
-                                                                  .w700,
-                                                              color:
-                                                              Colors.white,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            )
+                                                    )),
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -795,16 +375,23 @@ class TaskList extends StatelessWidget {
                             );
                           });
                     },
-                    leading: Icon(Icons.format_list_bulleted),
+                    leading: Icon(
+                        analisis == 'Kurang Laku'
+                            ? Icons.report
+                            : Icons.format_list_bulleted,
+                        color: Colors.black),
                     title: Text(
                       namaBarang,
-                      style: TextStyle(fontSize: 20),
+                      style: TextStyle(fontSize: 20, color: Colors.black),
                     ),
                     subtitle: Text(
                       hjBarang,
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 18, color: Colors.black),
                     ),
-                    trailing: Icon(Icons.analytics))),
+                    trailing: Text(
+                      analisis,
+                      style: TextStyle(fontSize: 20, color: Colors.black),
+                    ))),
           ),
         );
       },

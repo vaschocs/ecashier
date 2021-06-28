@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../side_drawer.dart';
+
 void main() => runApp(MyApp());
 BuildContext konteks;
 
@@ -101,6 +103,9 @@ class _SupplierPageState extends State<SupplierPage> {
       konteks = context;
     });
     return Scaffold(
+      drawer: SideDrawer(),
+      appBar: AppBar(
+        title: Text('Kelola Produk'),),
       body: StreamBuilder(
         stream: Firestore.instance.collection('supplier').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -287,11 +292,6 @@ class TaskList extends StatelessWidget {
         await transaction.update(snapshot.reference, {"namaSupplier": value});
       });
 
-      Firestore.instance.runTransaction((Transaction transaction) async {
-        DocumentSnapshot snapshot = await transaction.get(index);
-        await transaction.update(snapshot.reference, {"namaSupplier": value});
-      });
-
       Navigator.of(konteksUpdate).pop();
 
       final snackBar = SnackBar(content: Text('Nama Supplier berhasil diubah'));
@@ -377,163 +377,164 @@ class TaskList extends StatelessWidget {
                         ]),
                     Row(mainAxisAlignment: MainAxisAlignment.end, children: <
                         Widget>[
-                      new IconButton(
-                          icon: Icon(Icons.edit),
-                          color: Colors.blue,
-                          onPressed: () async {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext konteksUpdate) {
-                                  return AlertDialog(
-                                    title: Text("Edit Supplier"),
-                                    content: Stack(
-                                      // ignore: deprecated_member_use
-                                      overflow: Overflow.visible,
-                                      children: <Widget>[
-                                        SingleChildScrollView(
-                                          child: Form(
-                                            key: _formKey,
-                                            child: Container(
-                                              height: 350,
-                                              width: 900,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: <Widget>[
-                                                  Padding(
-                                                    padding: EdgeInsets.symmetric(
-                                                        vertical: 1),
-                                                    child: TextFormField(
-                                                      enabled: false,
-                                                      textCapitalization:
-                                                      TextCapitalization
-                                                          .words,
-                                                      decoration: InputDecoration(
-                                                        border:
-                                                        OutlineInputBorder(),
-                                                        labelText:
-                                                        'Nama Supplier',
-                                                      ),
-                                                      validator: (value) {
-                                                        update(index, value,
-                                                            konteksUpdate);
-                                                        if (value == null ||
-                                                            value.isEmpty) {
-                                                          return 'Masukan Nama Supplier Baru';
-                                                        } else if (hasil ==
-                                                            true) {
-                                                          return outputValidasi;
-                                                        } else {
-                                                          return null;
-                                                        }
-                                                      },
-                                                      controller: editSupplier,
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding: EdgeInsets.symmetric(
-                                                        vertical: 5),
-                                                    child: TextFormField(
-                                                      textCapitalization:
-                                                      TextCapitalization
-                                                          .words,
-                                                      decoration: InputDecoration(
-                                                        border:
-                                                        OutlineInputBorder(),
-                                                        labelText:
-                                                        'Alamat Supplier',
-                                                      ),
-                                                      controller: editAlamat,
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding: EdgeInsets.symmetric(
-                                                        vertical: 5),
-                                                    child: TextFormField(
-                                                      textCapitalization:
-                                                      TextCapitalization
-                                                          .words,
-                                                      decoration: InputDecoration(
-                                                        border:
-                                                        OutlineInputBorder(),
-                                                        labelText:
-                                                        'Kontak Supplier',
-                                                      ),
-                                                      controller: editKontak,
-                                                    ),
-                                                  ),
-
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                    children: <Widget>[
-                                                      Padding(
-                                                        padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                        child: SizedBox(
-                                                          height: 50,
-                                                          width: 180,
-                                                          // ignore: deprecated_member_use
-                                                          child: RaisedButton(
-                                                            color: Colors.blue,
-                                                            child: Text(
-                                                              "Edit",
-                                                              style: TextStyle(
-                                                                  fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                                  fontSize: 20,
-                                                                  color: Colors
-                                                                      .white),
-                                                            ),
-                                                            onPressed: () async {
-                                                              if (_formKey
-                                                                  .currentState
-                                                                  .validate()) ;
-                                                            },
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                        child: SizedBox(
-                                                          height: 50,
-                                                          width: 180,
-                                                          // ignore: deprecated_member_use
-                                                          child: RaisedButton(
-                                                            child: Text("Batal",
-                                                                style: TextStyle(
-                                                                    fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                    fontSize: 20,
-                                                                    color: Colors
-                                                                        .black)),
-                                                            onPressed: () {
-                                                              Navigator.of(
-                                                                  konteksUpdate)
-                                                                  .pop();
-                                                            },
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                });
-                          }),
+                      // new IconButton(
+                      //     icon: Icon(Icons.edit),
+                      //     color: Colors.blue,
+                      //     onPressed: () async {
+                      //       showDialog(
+                      //           context: context,
+                      //           builder: (BuildContext konteksUpdate) {
+                      //             return AlertDialog(
+                      //               title: Text("Edit Supplier"),
+                      //               content: Stack(
+                      //                 // ignore: deprecated_member_use
+                      //                 overflow: Overflow.visible,
+                      //                 children: <Widget>[
+                      //                   SingleChildScrollView(
+                      //                     child: Form(
+                      //                       key: _formKey,
+                      //                       child: Container(
+                      //                         height: 350,
+                      //                         width: 900,
+                      //                         child: Column(
+                      //                           mainAxisSize: MainAxisSize.min,
+                      //                           children: <Widget>[
+                      //                             Padding(
+                      //                               padding: EdgeInsets.symmetric(
+                      //                                   vertical: 1),
+                      //                               child: TextFormField(
+                      //                                 enabled: false,
+                      //                                 textCapitalization:
+                      //                                 TextCapitalization
+                      //                                     .words,
+                      //                                 decoration: InputDecoration(
+                      //                                   border:
+                      //                                   OutlineInputBorder(),
+                      //                                   labelText:
+                      //                                   'Nama Supplier',
+                      //                                 ),
+                      //                                 validator: (value) {
+                      //                                   update(index, value,
+                      //                                       konteksUpdate);
+                      //                                   if (value == null ||
+                      //                                       value.isEmpty) {
+                      //                                     return 'Masukan Nama Supplier Baru';
+                      //                                   } else if (hasil ==
+                      //                                       true) {
+                      //                                     return outputValidasi;
+                      //                                   } else {
+                      //                                     return null;
+                      //                                   }
+                      //                                 },
+                      //                                 controller: editSupplier,
+                      //                               ),
+                      //                             ),
+                      //                             Padding(
+                      //                               padding: EdgeInsets.symmetric(
+                      //                                   vertical: 5),
+                      //                               child: TextFormField(
+                      //                                 textCapitalization:
+                      //                                 TextCapitalization
+                      //                                     .words,
+                      //                                 decoration: InputDecoration(
+                      //                                   border:
+                      //                                   OutlineInputBorder(),
+                      //                                   labelText:
+                      //                                   'Alamat Supplier',
+                      //                                 ),
+                      //                                 controller: editAlamat,
+                      //                               ),
+                      //                             ),
+                      //                             Padding(
+                      //                               padding: EdgeInsets.symmetric(
+                      //                                   vertical: 5),
+                      //                               child: TextFormField(
+                      //                                 textCapitalization:
+                      //                                 TextCapitalization
+                      //                                     .words,
+                      //                                 decoration: InputDecoration(
+                      //                                   border:
+                      //                                   OutlineInputBorder(),
+                      //                                   labelText:
+                      //                                   'Kontak Supplier',
+                      //                                 ),
+                      //                                 controller: editKontak,
+                      //                               ),
+                      //                             ),
+                      //
+                      //                             Row(
+                      //                               mainAxisAlignment:
+                      //                               MainAxisAlignment.end,
+                      //                               children: <Widget>[
+                      //                                 Padding(
+                      //                                   padding:
+                      //                                   const EdgeInsets.all(
+                      //                                       8.0),
+                      //                                   child: SizedBox(
+                      //                                     height: 50,
+                      //                                     width: 180,
+                      //                                     // ignore: deprecated_member_use
+                      //                                     child: RaisedButton(
+                      //                                       color: Colors.blue,
+                      //                                       child: Text(
+                      //                                         "Edit",
+                      //                                         style: TextStyle(
+                      //                                             fontWeight:
+                      //                                             FontWeight
+                      //                                                 .bold,
+                      //                                             fontSize: 20,
+                      //                                             color: Colors
+                      //                                                 .white),
+                      //                                       ),
+                      //                                       onPressed: () async {
+                      //                                         if (_formKey
+                      //                                             .currentState
+                      //                                             .validate()) ;
+                      //                                       },
+                      //                                     ),
+                      //                                   ),
+                      //                                 ),
+                      //                                 Padding(
+                      //                                   padding:
+                      //                                   const EdgeInsets.all(
+                      //                                       8.0),
+                      //                                   child: SizedBox(
+                      //                                     height: 50,
+                      //                                     width: 180,
+                      //                                     // ignore: deprecated_member_use
+                      //                                     child: RaisedButton(
+                      //                                       color: Colors.red,
+                      //                                       child: Text("Batal",
+                      //                                           style: TextStyle(
+                      //                                               fontWeight:
+                      //                                               FontWeight
+                      //                                                   .bold,
+                      //                                               fontSize: 20,
+                      //                                               color: Colors
+                      //                                                   .white)),
+                      //                                       onPressed: () {
+                      //                                         Navigator.of(
+                      //                                             konteksUpdate)
+                      //                                             .pop();
+                      //                                       },
+                      //                                     ),
+                      //                                   ),
+                      //                                 ),
+                      //                               ],
+                      //                             ),
+                      //                           ],
+                      //                         ),
+                      //                       ),
+                      //                     ),
+                      //                   )
+                      //                 ],
+                      //               ),
+                      //             );
+                      //           });
+                      //     }),
                       new IconButton(
                           icon: Icon(Icons.delete),
-                          color: Colors.blue,
+                          color: Colors.red,
                           onPressed: () async {
                             showDialog(
                                 context: context,
@@ -563,7 +564,7 @@ class TaskList extends StatelessWidget {
                                             ),
                                             Row(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.center,
+                                                    MainAxisAlignment.end,
                                                 children: <Widget>[
                                                   Padding(
                                                     padding:
@@ -574,7 +575,7 @@ class TaskList extends StatelessWidget {
                                                       width: 180,
                                                       // ignore: deprecated_member_use
                                                       child: RaisedButton(
-                                                        color: Colors.blue,
+                                                        color: Colors.red,
                                                         child: Text(
                                                           "Hapus",
                                                           style: TextStyle(
@@ -616,6 +617,7 @@ class TaskList extends StatelessWidget {
                                                       width: 180,
                                                       // ignore: deprecated_member_use
                                                       child: RaisedButton(
+                                                        color: Colors.blue,
                                                         child: Text("Batal",
                                                             style: TextStyle(
                                                                 fontWeight:
@@ -623,7 +625,7 @@ class TaskList extends StatelessWidget {
                                                                         .bold,
                                                                 fontSize: 30,
                                                                 color: Colors
-                                                                    .black)),
+                                                                    .white)),
                                                         onPressed: () {
                                                           Navigator.of(
                                                                   deleteKonteks)

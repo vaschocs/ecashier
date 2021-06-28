@@ -310,6 +310,7 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
               ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                // ignore: deprecated_member_use
                 child: RaisedButton(
                   onPressed: () async {},
                   color: Colors.redAccent,

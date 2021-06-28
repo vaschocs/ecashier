@@ -15,19 +15,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Edit Barang',
+        title: 'Edit Barang Tanpa Nama',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
         debugShowCheckedModeBanner: false,
         home: Scaffold(
-          body: EditBarangPage(),
+          body: TanpaNamaPage(),
         ));
   }
 }
 
-class EditBarangPage extends StatefulWidget {
-  EditBarangPage(
+class TanpaNamaPage extends StatefulWidget {
+  TanpaNamaPage(
       {this.namaBarang,
       this.katBarang,
       this.hjBarang,
@@ -48,10 +48,10 @@ class EditBarangPage extends StatefulWidget {
   final String leadTime;
   final String namaSupplier;
   @override
-  _EditBarangPageState createState() => _EditBarangPageState();
+  TanpaNamaPageState createState() => TanpaNamaPageState();
 }
 
-class _EditBarangPageState extends State<EditBarangPage> {
+class TanpaNamaPageState extends State<TanpaNamaPage> {
   var selectedKategori;
   var selectedSupplier;
   var indeks;
@@ -61,10 +61,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
   TextEditingController controllerHb;
   TextEditingController controllerjmlStok;
   TextEditingController controllerminStok;
-  TextEditingController controllerWaktuPesan;
-  TextEditingController controllerWaktuPesanLama;
-  TextEditingController controllerRataJual;
-  TextEditingController controllerRataJualTinggi;
+  TextEditingController controllerLeadTime;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -84,7 +81,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
     selectedKategori = widget.katBarang;
     selectedSupplier = widget.namaSupplier;
     indeks = widget.index;
-
+    controllerLeadTime = new TextEditingController(text: widget.leadTime);
   }
 
   Future<bool> deleteBarang(
@@ -97,16 +94,9 @@ class _EditBarangPageState extends State<EditBarangPage> {
 
       jawaban = true;
     });
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => new ProdukPage(),
-        ));
   }
 
   Future<bool> update() async {
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('yyyy-MM-dd').format(now);
     final QuerySnapshot result = await Firestore.instance
         .collection('barang')
         .where('namaBarang', isEqualTo: controllerNama.text)
@@ -114,112 +104,8 @@ class _EditBarangPageState extends State<EditBarangPage> {
         .getDocuments();
     final List<DocumentSnapshot> document = result.documents;
 
-    if (document.length >= 1) {
-      hasil = true;
-    } else {
-      hasil = false;
-      Firestore.instance.runTransaction((Transaction transaction) async {
-        DocumentSnapshot snapshot = await transaction.get(indeks);
-        await transaction.update(snapshot.reference, {
-          'namaBarang': controllerNama.text,
-          'kategoriBarang': selectedKategori,
-          'namaSupplier': selectedSupplier,
-          'hjBarang': controllerHj.text,
-          'hbBarang': controllerHb.text,
-          'jmlStok': controllerjmlStok.text,
-          'minStok': controllerminStok.text,
-          'waktu': formattedDate,
-        });
-      });
-      showDialog(
-          context: context,
-          builder: (BuildContext editKonteks) {
-            return AlertDialog(
-              content: Stack(
-                // ignore: deprecated_member_use
-                overflow: Overflow.visible,
-                children: <Widget>[
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          "Apakah benar anda ingin melakukan update data barang?",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 30,
-                              color: Colors.black),
-                        ),
-                      ),
-                      Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.end,
-                          children: <Widget>[
-                            Padding(
-                              padding:
-                              const EdgeInsets.all(8.0),
-                              child: SizedBox(
-                                height: 50,
-                                width: 180,
-                                child: RaisedButton(
-                                  color: Colors.blue,
-                                  child: Text(
-                                    "Ya",
-                                    style: TextStyle(
-                                        fontWeight:
-                                        FontWeight.bold,
-                                        fontSize: 20,
-                                        color:
-                                        Colors.white),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.of(
-                                        editKonteks)
-                                        .pop();
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                          new ProdukPage(),
-                                        ));
-                                  },
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                              const EdgeInsets.all(8.0),
-                              child: SizedBox(
-                                height: 50,
-                                width: 180,
-                                child: RaisedButton(
-                                  color: Colors.red,
-                                  child: Text(
-                                    "Tidak",
-                                    style: TextStyle(
-                                        fontWeight:
-                                        FontWeight.bold,
-                                        fontSize: 20,
-                                        color:
-                                        Colors.white),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.of(
-                                        editKonteks)
-                                        .pop();
-                                  },
-                                ),
-                              ),
-                            ),
-                          ]),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          });
-    }
+    hasil = false;
+
     return null;
   }
 
@@ -269,24 +155,8 @@ class _EditBarangPageState extends State<EditBarangPage> {
                       border: OutlineInputBorder(),
                       labelText: 'Nama Barang',
                     ),
+                    enabled: false,
                     controller: controllerNama,
-                    validator: (controllerNama) {
-                      update();
-                      print('haw' + hasil.toString());
-                      if (controllerNama == null || controllerNama.isEmpty) {
-                        return 'Masukan Nama Barang Baru';
-                      } else if (hasil == true) {
-                        return outputValidasi;
-                      } else if (hasil == false) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProdukPage(),
-                          ),
-                        );
-                      }
-                      return null;
-                    },
                   ),
                 ),
                 StreamBuilder<QuerySnapshot>(
@@ -464,7 +334,124 @@ class _EditBarangPageState extends State<EditBarangPage> {
                           EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       child: RaisedButton(
                         onPressed: () async {
-                          if (_formKey.currentState.validate()) ;
+                          DateTime now = DateTime.now();
+                          String formattedDate =
+                              DateFormat('yyyy-MM-dd').format(now);
+                          if (_formKey.currentState.validate()) {
+                            Firestore.instance.runTransaction(
+                                (Transaction transaction) async {
+                              DocumentSnapshot snapshot =
+                                  await transaction.get(indeks);
+                              await transaction.update(snapshot.reference, {
+                                'namaBarang': controllerNama.text,
+                                'kategoriBarang': selectedKategori,
+                                'namaSupplier': selectedSupplier,
+                                'hjBarang': controllerHj.text,
+                                'hbBarang': controllerHb.text,
+                                'jmlStok': controllerjmlStok.text,
+                                'minStok': controllerminStok.text,
+                                'waktu': formattedDate,
+                              });
+                            });
+                            showDialog(
+                                context: context,
+                                builder: (BuildContext editKonteks) {
+                                  return AlertDialog(
+                                    content: Stack(
+                                      // ignore: deprecated_member_use
+                                      overflow: Overflow.visible,
+                                      children: <Widget>[
+                                        Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                "Apakah benar anda ingin melakukan update data barang?",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 30,
+                                                    color: Colors.black),
+                                              ),
+                                            ),
+                                            Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: <Widget>[
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: SizedBox(
+                                                      height: 50,
+                                                      width: 180,
+                                                      child: RaisedButton(
+                                                        color: Colors.blue,
+                                                        child: Text(
+                                                          "Ya",
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 20,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                        onPressed: () {
+                                                          Navigator.of(
+                                                                  editKonteks)
+                                                              .pop();
+                                                          Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                builder: (
+                                                                    context) =>
+                                                                    ProdukPage(
+
+                                                                    ),
+                                                              ));
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: SizedBox(
+                                                      height: 50,
+                                                      width: 180,
+                                                      child: RaisedButton(
+                                                        color: Colors.red,
+                                                        child: Text(
+                                                          "Tidak",
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 20,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                        onPressed: () {
+                                                          Navigator.of(
+                                                                  editKonteks)
+                                                              .pop();
+
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ]),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                });
+                          }
+                          ;
                         },
                         color: Colors.blue,
                         child: Padding(
@@ -538,6 +525,11 @@ class _EditBarangPageState extends State<EditBarangPage> {
                                                       onPressed: () {
                                                         deleteBarang(indeks,
                                                             deleteKonteks);
+                                                        Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder: (context) => new ProdukPage(),
+                                                            ));
                                                       },
                                                     ),
                                                   ),

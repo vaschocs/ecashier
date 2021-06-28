@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../side_drawer.dart';
+
 void main() => runApp(MyApp());
 BuildContext konteks;
 
@@ -81,6 +83,10 @@ class _KategoriPageState extends State<KategoriPage> {
       konteks = context;
     });
     return Scaffold(
+      drawer: SideDrawer(),
+      appBar: AppBar(
+        title: Text('Kelola Produk'),
+      ),
       body: StreamBuilder(
         stream: Firestore.instance.collection('kategori').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -117,12 +123,16 @@ class _KategoriPageState extends State<KategoriPage> {
                               Row(
                                 children: <Widget>[
                                   Container(
-                                    child:Icon(Icons.category_rounded) ,
+                                    child: Icon(Icons.category_rounded),
                                   ),
-                                  Text('Tambah Kategori',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
+                                  Text(
+                                    'Tambah Kategori',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 30),
+                                  ),
                                 ],
                               ),
-
                               Container(
                                 height: 30,
                               ),
@@ -153,7 +163,6 @@ class _KategoriPageState extends State<KategoriPage> {
                                   controller: namaKategori,
                                 ),
                               ),
-
                               Container(
                                 height: 30,
                               ),
@@ -234,6 +243,12 @@ class TaskList extends StatelessWidget {
   bool adaFile;
   bool fileUsed;
 
+  Future getdbBarang()async{
+    await Firestore.instance.collection('barang').snapshots().listen((dbBarang) {
+
+    });
+  }
+
   Future<bool> update(
       DocumentReference index, String value, BuildContext konteksUpdate) async {
     final QuerySnapshot result = await Firestore.instance
@@ -249,11 +264,13 @@ class TaskList extends StatelessWidget {
       Firestore.instance.runTransaction((Transaction transaction) async {
         DocumentSnapshot snapshot = await transaction.get(index);
         await transaction.update(snapshot.reference, {"namaKategori": value});
-        Navigator.of(konteksUpdate).pop();
-        final snackBar =
-            SnackBar(content: Text('Nama Kategori berhasil diubah'));
-        ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
       });
+
+
+
+      Navigator.of(konteksUpdate).pop();
+      final snackBar = SnackBar(content: Text('Nama Kategori berhasil diubah'));
+      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
     }
 
     namaKategori = '';
@@ -281,8 +298,8 @@ class TaskList extends StatelessWidget {
               .where('kategoriBarang', isEqualTo: editKategori.text)
               .limit(1)
               .getDocuments();
-          final List<DocumentSnapshot> documents = await result.documents;
-          if (documents.length >= 1) {
+          final List<DocumentSnapshot> dbBarang = await result.documents;
+          if (dbBarang.length >= 1) {
             adaBarang = true;
           } else {
             adaBarang = false;
@@ -319,8 +336,6 @@ class TaskList extends StatelessWidget {
             });
           }
         }
-
-
 
         return new Padding(
           padding: const EdgeInsets.all(5.0),
@@ -393,8 +408,7 @@ class TaskList extends StatelessWidget {
                                                             'Nama Kategori',
                                                       ),
                                                       validator: (value) {
-                                                        update(index, value,
-                                                            konteksUpdate);
+                                                    update(index, value, konteksUpdate);
                                                         if (value == null ||
                                                             value.isEmpty) {
                                                           return 'Masukan Nama Kategori Baru';
@@ -509,7 +523,7 @@ class TaskList extends StatelessWidget {
                                             ),
                                             Row(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.center,
+                                                    MainAxisAlignment.end,
                                                 children: <Widget>[
                                                   Padding(
                                                     padding:
@@ -519,7 +533,7 @@ class TaskList extends StatelessWidget {
                                                       height: 50,
                                                       width: 180,
                                                       child: RaisedButton(
-                                                        color: Colors.green,
+                                                        color: Colors.red,
                                                         child: Text(
                                                           "Hapus",
                                                           style: TextStyle(

@@ -1,15 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
-import 'package:dio/dio.dart';
-import 'package:ecashier/Barang/editBarang.dart';
+import 'package:ecashier/Barang/edittanpanama.dart';
+
+import 'package:ecashier/searchservive.dart';
+import 'package:ecashier/side_drawer.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import 'editBarang.dart';
+
 void main() => runApp(MyApp());
 
 var gantiNama = true;
+var hasil;
 
 class MyApp extends StatelessWidget {
   @override
@@ -31,16 +37,36 @@ class ProdukPage extends StatefulWidget {
 }
 
 class _ProdukPageState extends State<ProdukPage> {
-  @override
-  void initState() {
-    super.initState();
-  }
 
-  void showingNotif() {
-    if (berhasil == true) {
-      final snackBar =
-          SnackBar(content: Text('Nama Kategori Berhasil Ditambahkan'));
-      ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
+  var queryResultSet = [];
+  var tempSearchStore = [];
+
+  initiateSearch(value) {
+    if (value.length == 0) {
+      setState(() {
+        queryResultSet = [];
+        tempSearchStore = [];
+      });
+    }
+
+    var capitalizedValue =
+        value.substring(0, 1).toUpperCase() + value.substring(1);
+
+    if (queryResultSet.length == 0 && value.length == 1) {
+      SearchService().searchByName(value).then((QuerySnapshot docs) {
+        for (int i = 0; i < docs.documents.length; ++i) {
+          queryResultSet.add(docs.documents[i].data);
+        }
+      });
+    } else {
+      tempSearchStore = [];
+      queryResultSet.forEach((element) {
+        if (element['namaBarang'].startsWith(capitalizedValue)) {
+          setState(() {
+            tempSearchStore.add(element);
+          });
+        }
+      });
     }
   }
 
@@ -55,14 +81,20 @@ class _ProdukPageState extends State<ProdukPage> {
   TextEditingController hjBarang = TextEditingController();
   TextEditingController hbBarang = TextEditingController();
   TextEditingController jmlStok = TextEditingController();
-
   TextEditingController minStok = TextEditingController();
   TextEditingController namaSupplier = TextEditingController();
+
   TextEditingController leadTime = TextEditingController();
-  GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  TextEditingController leadTimeLama = TextEditingController();
+  TextEditingController rataPenjualan = TextEditingController();
+  TextEditingController rataPenjualanTinggi = TextEditingController();
+
+  GlobalKey<FormState> formKey2 = GlobalKey<FormState>();
+  GlobalKey<FormState> formKey1 = GlobalKey<FormState>();
+
   Future<bool> cek(String value) async {
     DateTime now = DateTime.now();
-    String formattedDate = DateFormat('yyyy-MM-dd 00:00:00.000').format(now);
+    String formattedDate = DateFormat('yyyy-MM-dd').format(now);
     final QuerySnapshot result = await Firestore.instance
         .collection('barang')
         .where('namaBarang', isEqualTo: value)
@@ -85,12 +117,17 @@ class _ProdukPageState extends State<ProdukPage> {
         'hbBarang': hbBarang.text,
         'jmlStok': jmlStok.text,
         'stokAwal': jmlStok.text,
-        'minStok': minStok.text,
+        'minStok': 0,
         'waktu': formattedDate,
-        'leadTime': leadTime.text
+        'leadTime': 0,
+        'kategoriPergerakan': 'belum ada',
+        'stokPakai': 0,
+        'waktuPesan': leadTime.text,
+        'waktuPesanLama': leadTimeLama.text,
+        'rataPenjualan': rataPenjualan.text,
+        'rataPenjualanTinggi': rataPenjualanTinggi.text,
       });
       namaBarang.text = '';
-
       selectedKategori = null;
       hjBarang.text = '';
       hbBarang.text = '';
@@ -99,358 +136,746 @@ class _ProdukPageState extends State<ProdukPage> {
       minStok.text = '';
       formattedDate = '';
       leadTime.text = '';
+      leadTimeLama.text = '';
+      rataPenjualan.text = '';
+      rataPenjualanTinggi.text = '';
+
       await setState(() {
         sama = false;
       });
     }
   }
 
+  var ltDemand;
+  @override
+  void initState() {
+    super.initState();
+
+  }
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
-        stream: Firestore.instance.collection('barang').snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData)
-            return new Container(
-              child: Column(
-                children: <Widget>[
-                  Center(
-                    child: CircularProgressIndicator(),
-                  )
-                ],
-              ),
-            );
-          return new Container(
-              child: TaskList(
-            document: snapshot.data.documents,
-          ));
-        },
+      drawer: SideDrawer(),
+      appBar: AppBar(
+        title: Text('Kelola Produk'),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          showDialog(
-              context: context,
-              builder: (BuildContext konteksAdd) {
-                return AlertDialog(
-                  title: Text('Tambah Barang'),
-                  content: Stack(
-                    // ignore: deprecated_member_use
-                    overflow: Overflow.visible,
-                    children: <Widget>[
-                      SingleChildScrollView(
-                        child: Form(
-                          key: formKey,
-                          child: Container(
-                            width: 900,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 10),
-                                  child: TextFormField(
-                                    textCapitalization:
-                                        TextCapitalization.words,
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: 'Nama Barang'),
-                                    controller: namaBarang,
-                                    validator: (namaBarang) {
-                                      if (namaBarang == null ||
-                                          namaBarang.isEmpty) {
-                                        return 'Masukan Nama Barang';
-                                      } else {
-                                        cek(namaBarang);
-                                        if (sama == true) {
-                                          return outputValidasi;
-                                        } else if (sama == false) {
-                                          setState(() {
-                                            namaBarang = '';
-                                          });
-                                          return null;
-                                        }
-                                      }
-                                      return null;
+      body: ListView(
+        children: <Widget>[
+          Column(
+            children: <Widget>[
+              SingleChildScrollView(
+                  child: Form(
+                      key: formKey1,
+                      child: Container(
+                        child: Column(
+                          children: <Widget>[
+                            SingleChildScrollView(
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: TextField(
+                                    onChanged: (val) {
+                                      initiateSearch(val);
                                     },
-                                  ),
-                                ),
-                                StreamBuilder<QuerySnapshot>(
-                                    stream: Firestore.instance
-                                        .collection('kategori')
-                                        .snapshots(),
-                                    builder: (context, snapshot) {
-                                      if (!snapshot.hasData) {
-                                        return Text(
-                                            "Tidak bisa mendapatkan data");
-                                      } else {
-                                        List<DropdownMenuItem> kategoriItems =
-                                            [];
-                                        for (int i = 0;
-                                            i < snapshot.data.documents.length;
-                                            i++) {
-                                          DocumentSnapshot snap =
-                                              snapshot.data.documents[i];
-                                          kategoriItems.add(DropdownMenuItem(
-                                            child: Text(
-                                              snap.data['namaKategori'],
-                                              style: TextStyle(
-                                                  color: Colors.black),
-                                            ),
-                                            value:
-                                                "${snap.data['namaKategori']}",
-                                          ));
-                                        }
-                                        return Container(
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 10, horizontal: 10),
-                                            child: DropdownButtonFormField(
-                                              decoration: InputDecoration(
-                                                  border: OutlineInputBorder(),
-                                                  labelText: 'Kategori Barang'),
-                                              value: selectedKategori,
-                                              items: kategoriItems,
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return 'Kategori Barang Wajib Diisi';
-                                                }
-                                                return null;
-                                              },
-                                              onChanged: (kategoriValue) {
-                                                setState(() {
-                                                  selectedKategori =
-                                                      kategoriValue;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 10),
-                                  child: TextFormField(
                                     decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Harga Jual Barang',
-                                    ),
-                                    inputFormatters: [
-                                      CurrencyTextInputFormatter(
-                                          locale: 'id',
-                                          decimalDigits: 0,
-                                          symbol: 'Rp')
-                                    ],
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Harga Jual Wajib Diisi';
-                                      }
-
-                                      return null;
-                                    },
-                                    keyboardType: TextInputType.number,
-                                    controller: hjBarang,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 10),
-                                  child: TextFormField(
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: 'Harga Beli Barang'),
-                                    keyboardType: TextInputType.number,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Harga Beli Wajib Diisi';
-                                      }
-                                      return null;
-                                    },
-                                    inputFormatters: [
-                                      CurrencyTextInputFormatter(
-                                          locale: 'id',
-                                          decimalDigits: 0,
-                                          symbol: 'Rp')
-                                    ],
-                                    controller: hbBarang,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 10),
-                                  child: TextFormField(
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: 'Jumlah Stok'),
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ],
-                                    controller: jmlStok,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Stok Barang Wajib Diisi';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 10),
-                                  child: TextFormField(
-                                    textCapitalization:
-                                        TextCapitalization.words,
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Waktu Pemesanan',
-                                    ),
-                                    controller: leadTime,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ],
-                                  ),
-                                ),
-                                StreamBuilder<QuerySnapshot>(
-                                    stream: Firestore.instance
-                                        .collection('supplier')
-                                        .snapshots(),
-                                    builder: (context, snapshot) {
-                                      if (!snapshot.hasData) {
-                                        return Text(
-                                            "Tidak bisa mendapatkan data");
-                                      } else {
-                                        List<DropdownMenuItem> supplierItems =
-                                            [];
-                                        for (int i = 0;
-                                            i < snapshot.data.documents.length;
-                                            i++) {
-                                          DocumentSnapshot snap =
-                                              snapshot.data.documents[i];
-                                          supplierItems.add(DropdownMenuItem(
-                                            child: Text(
-                                              snap.data['namaSupplier'],
-                                              style: TextStyle(
-                                                  color: Colors.black),
-                                            ),
-                                            value:
-                                                "${snap.data['namaSupplier']}",
-                                          ));
-                                        }
-                                        return Container(
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 10, horizontal: 10),
-                                            child: DropdownButtonFormField(
-                                              decoration: InputDecoration(
-                                                  border: OutlineInputBorder(),
-                                                  labelText: 'Supplier Barang'),
-                                              value: selectedSupplier,
-                                              items: supplierItems,
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return 'Supplier Barang Wajib Diisi';
-                                                }
-                                                return null;
-                                              },
-                                              onChanged: (supplierValue) {
-                                                setState(() {
-                                                  selectedSupplier =
-                                                      supplierValue;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 10, horizontal: 10),
-                                      // ignore: deprecated_member_use
-                                      child: RaisedButton(
-                                        onPressed: () async {
-                                          if (formKey.currentState.validate()) {
-                                            Navigator.of(konteksAdd).pop();
-                                          }
-                                        },
-                                        color: Colors.blue,
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 10),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: <Widget>[
-                                              Text(
-                                                'Simpan',
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                        prefixIcon: IconButton(
+                                          color: Colors.black,
+                                          icon: Icon(Icons.arrow_back),
+                                          iconSize: 20.0,
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
                                         ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 10, horizontal: 10),
-                                      // ignore: deprecated_member_use
-                                      child: RaisedButton(
-                                        onPressed: () async {
-                                          Navigator.of(konteksAdd).pop();
-                                        },
-                                        color: Colors.red,
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 10),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: <Widget>[
-                                              Text(
-                                                'Batal',
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
+                                        contentPadding:
+                                            EdgeInsets.only(left: 25.0),
+                                        hintText: "Cari Produk",
+                                        border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(4.0)))),
+                              ),
                             ),
-                          ),
+                            // SizedBox(
+                            //   height: 10.0,
+                            // ),
+                            // GridView.count(
+                            //   padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                            //   crossAxisCount: 2,
+                            //   crossAxisSpacing: 4.0,
+                            //   mainAxisSpacing: 4.0,
+                            //   primary: false,
+                            //   shrinkWrap: true,
+                            //   children: tempSearchStore.map((element) {
+                            //     return buildResultCard(element);
+                            //   }).toList(),
+                            // ),
+
+                            Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 10),
+                                child: Container(
+                                  height: 600,
+                                  width: 1500,
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                    color: Colors.grey,
+                                  )),
+                                  child: StreamBuilder(
+                                    stream: Firestore.instance
+                                        .collection('barang')
+                                        .orderBy('jmlStok', descending: false)
+                                        .snapshots(),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                                      if (!snapshot.hasData)
+                                        return new Container(
+                                          child: Column(
+                                            children: <Widget>[
+                                              Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              )
+                                            ],
+                                          ),
+                                        );
+
+                                      return new Container(
+                                          child: TaskList(
+                                        document: snapshot.data.documents,
+                                      ));
+                                    },
+                                  ),
+                                )),
+                            Container(
+                              width: 1250,
+                              height: 50,
+                              child: RaisedButton(
+                                color: Colors.blue,
+                                child: Text(
+                                  'Tambah',
+                                  style: TextStyle(
+                                      fontSize: 30, color: Colors.white),
+                                ),
+                                onPressed: () {
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext konteksAdd) {
+                                        return AlertDialog(
+
+                                          content: Stack(
+                                            // ignore: deprecated_member_use
+                                            overflow: Overflow.visible,
+                                            children: <Widget>[
+                                              SingleChildScrollView(
+                                                child: Form(
+                                                  key: formKey2,
+                                                  child: Container(
+                                                    width: 900,
+                                                    child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: <Widget>[
+                                                        Padding(
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 10,
+                                                                horizontal:
+                                                                10),
+                                                            child: Container(
+                                                              alignment: Alignment.center,
+                                                              color: Colors.lightBlue[200],
+                                                              width: 1200,
+                                                              height: 40,
+                                                              child: Text('Tambah Barang',style: TextStyle(fontWeight:FontWeight.bold,fontSize: 20),),
+                                                            )
+                                                        ),
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 10,
+                                                                  horizontal:
+                                                                      10),
+                                                          child: TextFormField(
+                                                            textCapitalization:
+                                                                TextCapitalization
+                                                                    .words,
+                                                            decoration: InputDecoration(
+                                                                border:
+                                                                    OutlineInputBorder(),
+                                                                labelText:
+                                                                    'Nama Barang'),
+                                                            controller:
+                                                                namaBarang,
+                                                            validator:
+                                                                (namaBarang) {
+                                                              if (namaBarang ==
+                                                                      null ||
+                                                                  namaBarang
+                                                                      .isEmpty) {
+                                                                return 'Masukan Nama Barang';
+                                                              } else {
+                                                                cek(namaBarang);
+                                                                if (sama ==
+                                                                    true) {
+                                                                  return outputValidasi;
+                                                                } else if (sama ==
+                                                                    false) {
+                                                                  setState(() {
+                                                                    namaBarang =
+                                                                        '';
+                                                                  });
+                                                                  return null;
+                                                                }
+                                                              }
+                                                              return null;
+                                                            },
+                                                          ),
+                                                        ),
+                                                        StreamBuilder<
+                                                                QuerySnapshot>(
+                                                            stream: Firestore
+                                                                .instance
+                                                                .collection(
+                                                                    'kategori')
+                                                                .snapshots(),
+                                                            builder: (context,
+                                                                snapshot) {
+                                                              if (!snapshot
+                                                                  .hasData) {
+                                                                return Text(
+                                                                    "Tidak bisa mendapatkan data");
+                                                              } else {
+                                                                List<DropdownMenuItem>
+                                                                    kategoriItems =
+                                                                    [];
+                                                                for (int i = 0;
+                                                                    i <
+                                                                        snapshot
+                                                                            .data
+                                                                            .documents
+                                                                            .length;
+                                                                    i++) {
+                                                                  DocumentSnapshot
+                                                                      snap =
+                                                                      snapshot
+                                                                          .data
+                                                                          .documents[i];
+                                                                  kategoriItems.add(
+                                                                      DropdownMenuItem(
+                                                                    child: Text(
+                                                                      snap.data[
+                                                                          'namaKategori'],
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              Colors.black),
+                                                                    ),
+                                                                    value:
+                                                                        "${snap.data['namaKategori']}",
+                                                                  ));
+                                                                }
+                                                                return Container(
+                                                                  child:
+                                                                      Padding(
+                                                                    padding: EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            10,
+                                                                        horizontal:
+                                                                            10),
+                                                                    child:
+                                                                        DropdownButtonFormField(
+                                                                      decoration: InputDecoration(
+                                                                          border:
+                                                                              OutlineInputBorder(),
+                                                                          labelText:
+                                                                              'Kategori Barang'),
+                                                                      value:
+                                                                          selectedKategori,
+                                                                      items:
+                                                                          kategoriItems,
+                                                                      validator:
+                                                                          (value) {
+                                                                        if (value ==
+                                                                                null ||
+                                                                            value.isEmpty) {
+                                                                          return 'Kategori Barang Wajib Diisi';
+                                                                        }
+                                                                        return null;
+                                                                      },
+                                                                      onChanged:
+                                                                          (kategoriValue) {
+                                                                        setState(
+                                                                            () {
+                                                                          selectedKategori =
+                                                                              kategoriValue;
+                                                                        });
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              }
+                                                            }),
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 10,
+                                                                  horizontal:
+                                                                      10),
+                                                          child: TextFormField(
+                                                            decoration: InputDecoration(
+                                                                border:
+                                                                    OutlineInputBorder(),
+                                                                labelText:
+                                                                    'Harga Beli Barang'),
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            validator: (value) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
+                                                                return 'Harga Beli Wajib Diisi';
+                                                              }
+
+                                                              return null;
+                                                            },
+                                                            inputFormatters: [
+                                                              CurrencyTextInputFormatter(
+                                                                  locale: 'id',
+                                                                  decimalDigits:
+                                                                      0,
+                                                                  symbol: 'Rp')
+                                                            ],
+                                                            controller:
+                                                                hbBarang,
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 10,
+                                                                  horizontal:
+                                                                      10),
+                                                          child: TextFormField(
+                                                            decoration:
+                                                                InputDecoration(
+                                                              border:
+                                                                  OutlineInputBorder(),
+                                                              labelText:
+                                                                  'Harga Jual Barang',
+                                                            ),
+                                                            inputFormatters: [
+                                                              CurrencyTextInputFormatter(
+                                                                  locale: 'id',
+                                                                  decimalDigits:
+                                                                      0,
+                                                                  symbol: 'Rp')
+                                                            ],
+                                                            validator: (value) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
+                                                                return 'Harga Jual Wajib Diisi';
+                                                              }
+
+                                                              return null;
+                                                            },
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            controller:
+                                                                hjBarang,
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 10,
+                                                                  horizontal:
+                                                                      10),
+                                                          child: TextFormField(
+                                                            decoration: InputDecoration(
+                                                                border:
+                                                                    OutlineInputBorder(),
+                                                                labelText:
+                                                                    'Jumlah Stok'),
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            inputFormatters: <
+                                                                TextInputFormatter>[
+                                                              FilteringTextInputFormatter
+                                                                  .digitsOnly
+                                                            ],
+                                                            controller: jmlStok,
+                                                            validator: (value) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
+                                                                return 'Stok Barang Wajib Diisi';
+                                                              }
+                                                              return null;
+                                                            },
+                                                          ),
+                                                        ),
+                                                        StreamBuilder<
+                                                                QuerySnapshot>(
+                                                            stream: Firestore
+                                                                .instance
+                                                                .collection(
+                                                                    'supplier')
+                                                                .snapshots(),
+                                                            builder: (context,
+                                                                snapshot) {
+                                                              if (!snapshot
+                                                                  .hasData) {
+                                                                return Text(
+                                                                    "Tidak bisa mendapatkan data");
+                                                              } else {
+                                                                List<DropdownMenuItem>
+                                                                    supplierItems =
+                                                                    [];
+                                                                for (int i = 0;
+                                                                    i <
+                                                                        snapshot
+                                                                            .data
+                                                                            .documents
+                                                                            .length;
+                                                                    i++) {
+                                                                  DocumentSnapshot
+                                                                      snap =
+                                                                      snapshot
+                                                                          .data
+                                                                          .documents[i];
+                                                                  supplierItems.add(
+                                                                      DropdownMenuItem(
+                                                                    child: Text(
+                                                                      snap.data[
+                                                                          'namaSupplier'],
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              Colors.black),
+                                                                    ),
+                                                                    value:
+                                                                        "${snap.data['namaSupplier']}",
+                                                                  ));
+                                                                }
+                                                                return Container(
+                                                                  child:
+                                                                      Padding(
+                                                                    padding: EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            10,
+                                                                        horizontal:
+                                                                            10),
+                                                                    child:
+                                                                        DropdownButtonFormField(
+                                                                      decoration: InputDecoration(
+                                                                          border:
+                                                                              OutlineInputBorder(),
+                                                                          labelText:
+                                                                              'Supplier Barang'),
+                                                                      value:
+                                                                          selectedSupplier,
+                                                                      items:
+                                                                          supplierItems,
+                                                                      validator:
+                                                                          (value) {
+                                                                        if (value ==
+                                                                                null ||
+                                                                            value.isEmpty) {
+                                                                          return 'Supplier Barang Wajib Diisi';
+                                                                        }
+                                                                        return null;
+                                                                      },
+                                                                      onChanged:
+                                                                          (supplierValue) {
+                                                                        setState(
+                                                                            () {
+                                                                          selectedSupplier =
+                                                                              supplierValue;
+                                                                        });
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              }
+                                                            }),
+
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 10,
+                                                                  horizontal:
+                                                                      10),
+                                                          child: TextFormField(
+                                                            decoration: InputDecoration(
+                                                                border:
+                                                                    OutlineInputBorder(),
+                                                                labelText:
+                                                                    'Waktu Pemesanan'),
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            inputFormatters: <
+                                                                TextInputFormatter>[
+                                                              FilteringTextInputFormatter
+                                                                  .digitsOnly
+                                                            ],
+                                                            controller:
+                                                                leadTime,
+                                                            validator: (value) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
+                                                                return 'Stok Barang Wajib Diisi';
+                                                              }
+                                                              return null;
+                                                            },
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 10,
+                                                                  horizontal:
+                                                                      10),
+                                                          child: TextFormField(
+                                                            decoration: InputDecoration(
+                                                                border:
+                                                                    OutlineInputBorder(),
+                                                                labelText:
+                                                                    'Waktu Pemesanan Terlama'),
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            inputFormatters: <
+                                                                TextInputFormatter>[
+                                                              FilteringTextInputFormatter
+                                                                  .digitsOnly
+                                                            ],
+                                                            controller:
+                                                                leadTimeLama,
+                                                            validator: (value) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
+                                                                return 'Stok Barang Wajib Diisi';
+                                                              }
+                                                              return null;
+                                                            },
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 10,
+                                                                  horizontal:
+                                                                      10),
+                                                          child: TextFormField(
+                                                            decoration: InputDecoration(
+                                                                border:
+                                                                    OutlineInputBorder(),
+                                                                labelText:
+                                                                    'Rata- Rata Penjualan'),
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            inputFormatters: <
+                                                                TextInputFormatter>[
+                                                              FilteringTextInputFormatter
+                                                                  .digitsOnly
+                                                            ],
+                                                            controller:
+                                                                rataPenjualan,
+                                                            validator: (value) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
+                                                                return 'Stok Barang Wajib Diisi';
+                                                              }
+                                                              return null;
+                                                            },
+                                                          ),
+                                                        ),
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  vertical: 10,
+                                                                  horizontal:
+                                                                      10),
+                                                          child: TextFormField(
+                                                            decoration: InputDecoration(
+                                                                border:
+                                                                    OutlineInputBorder(),
+                                                                labelText:
+                                                                    'Rata - Rata Penjualan Tertinggi'),
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .number,
+                                                            inputFormatters: <
+                                                                TextInputFormatter>[
+                                                              FilteringTextInputFormatter
+                                                                  .digitsOnly
+                                                            ],
+                                                            controller:
+                                                                rataPenjualanTinggi,
+                                                            validator: (value) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
+                                                                return 'Stok Barang Wajib Diisi';
+                                                              }
+                                                              return null;
+                                                            },
+                                                          ),
+                                                        ),
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .end,
+                                                          children: <Widget>[
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      vertical:
+                                                                          10,
+                                                                      horizontal:
+                                                                          10),
+                                                              // ignore: deprecated_member_use
+                                                              child:
+                                                                  RaisedButton(
+                                                                onPressed:
+                                                                    () async {
+
+                                                                  if (formKey2
+                                                                      .currentState
+                                                                      .validate()) {
+                                                                    Navigator.of(
+                                                                            konteksAdd)
+                                                                        .pop();
+                                                                    final snackBar =
+                                                                        SnackBar(
+                                                                            content:
+                                                                                Text('Data barang berhasil ditambahkan'));
+                                                                    ScaffoldMessenger.of(
+                                                                            konteksAdd)
+                                                                        .showSnackBar(
+                                                                            snackBar);
+                                                                  }
+                                                                },
+                                                                color:
+                                                                    Colors.blue,
+                                                                child: Padding(
+                                                                  padding: EdgeInsets
+                                                                      .symmetric(
+                                                                          vertical:
+                                                                              10),
+                                                                  child: Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .center,
+                                                                    children: <
+                                                                        Widget>[
+                                                                      Text(
+                                                                        'Simpan',
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              20,
+                                                                          fontWeight:
+                                                                              FontWeight.w700,
+                                                                          color:
+                                                                              Colors.white,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      vertical:
+                                                                          10,
+                                                                      horizontal:
+                                                                          10),
+                                                              // ignore: deprecated_member_use
+                                                              child:
+                                                                  RaisedButton(
+                                                                onPressed:
+                                                                    () async {
+                                                                  Navigator.of(
+                                                                          konteksAdd)
+                                                                      .pop();
+                                                                },
+                                                                color:
+                                                                    Colors.red,
+                                                                child: Padding(
+                                                                  padding: EdgeInsets
+                                                                      .symmetric(
+                                                                          vertical:
+                                                                              10),
+                                                                  child: Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .center,
+                                                                    children: <
+                                                                        Widget>[
+                                                                      Text(
+                                                                        'Batal',
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              20,
+                                                                          fontWeight:
+                                                                              FontWeight.w700,
+                                                                          color:
+                                                                              Colors.white,
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      });
+                                  // Navigator.push(
+                                  //     context,
+                                  //     MaterialPageRoute(
+                                  //       builder: (context) => TambahBarangPage(),
+                                  //     ));
+                                },
+                              ),
+                            )
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              });
-          // Navigator.push(
-          //     context,
-          //     MaterialPageRoute(
-          //       builder: (context) => TambahBarangPage(),
-          //     ));
-        },
-        label: Text('Tambah'),
-        icon: Icon(Icons.add),
-        backgroundColor: Colors.blue,
+                      ))),
+            ],
+          )
+        ],
       ),
     );
   }
@@ -458,6 +883,7 @@ class _ProdukPageState extends State<ProdukPage> {
 
 class TaskList extends StatelessWidget {
   TaskList({this.document});
+
   final List<DocumentSnapshot> document;
 
   final _formKey = GlobalKey<FormState>();
@@ -494,7 +920,12 @@ class TaskList extends StatelessWidget {
         String hbBarang = document[i].data['hbBarang'].toString();
         String jmlStok = document[i].data['jmlStok'].toString();
         String namaSupplier = document[i].data['namaSupplier'].toString();
-        String leadTime = document[i].data['leadTime'].toString();
+
+        var intMinStok = int.parse(minStok);
+        assert(intMinStok is int);
+        var intJmlStok = int.parse(jmlStok);
+        assert(intJmlStok is int);
+
         TextEditingController controllerNama =
             TextEditingController(text: namaBarang);
         TextEditingController controllerHj =
@@ -507,76 +938,19 @@ class TaskList extends StatelessWidget {
             TextEditingController(text: minStok);
         final index = document[i].reference;
 
-        var selectedKategoriEdit  = katBarang;
-        var selectedSupplierEdit = namaSupplier;
-
-        Future<bool> update(DocumentReference index, String value) async {
-          DateTime now = DateTime.now();
-          String formattedDate = DateFormat('yyyy-MM-dd – hh:mm:ss').format(now);
-          final QuerySnapshot result = await Firestore.instance
-              .collection('barang')
-              .where('namaBarang', isEqualTo: controllerNama.text)
-              .limit(1)
-              .getDocuments();
-          final List<DocumentSnapshot> document = result.documents;
-          if (gantiNama == false) {
-              berhasil = true;
-              Firestore.instance.runTransaction((Transaction transaction) async {
-                DocumentSnapshot snapshot = await transaction.get(
-                    index);
-                await transaction.update(snapshot.reference, {
-                  'namaBarang': controllerNama.text,
-                  'kategoriBarang': selectedKategoriEdit,
-                  'namaSupplier': selectedSupplierEdit,
-                  'hjBarang': controllerHj.text,
-                  'hbBarang': controllerHb.text,
-                  'jmlStok': controllerjmlStok.text,
-                  'minStok': controllerminStok.text,
-                  'waktu': formattedDate,
-                });
-              });
-
-            return null;
-          }
-            else {
-              if(document.length>=1){
-                hasil = true;
-              }else{
-                hasil = false;
-                berhasil = true;
-                Firestore.instance.runTransaction((Transaction transaction) async {
-                  DocumentSnapshot snapshot = await transaction.get(index);
-                  await transaction.update(snapshot.reference, {'namaBarang': controllerNama.text,
-                    'kategoriBarang': selectedKategoriEdit,
-                    'namaSupplier': selectedSupplierEdit,
-                    'hjBarang': controllerHj.text,
-                    'hbBarang': controllerHb.text,
-                    'jmlStok': controllerjmlStok.text,
-                    'minStok': controllerminStok.text,
-                    'waktu': formattedDate,});
-
-                  final snackBar =
-                  SnackBar(content: Text('Nama Kategori berhasil diubah'));
-                  ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
-                });
-              }
-              return null;
-          }
-          return null;
-        }
-
         return new Padding(
           padding: const EdgeInsets.all(5.0),
           child: Container(
             color: Colors.white60,
             child: Card(
-                shape: Border.all(color: Colors.blue),
+                color: int.parse(minStok) <= int.parse(jmlStok)
+                    ? Colors.cyan[50]
+                    : Colors.red[200],
                 child: ListTile(
                   onTap: () {
                     showDialog(
                         context: context,
                         builder: (BuildContext editKonteks) {
-                          new TaskList();
                           return AlertDialog(
                             content: Stack(
                               // ignore: deprecated_member_use
@@ -592,19 +966,20 @@ class TaskList extends StatelessWidget {
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 30,
-
                                             color: Colors.black),
                                       ),
                                     ),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: <Widget>[
                                         Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                                MainAxisAlignment.center,
                                             children: <Widget>[
                                               Padding(
-                                                padding: const EdgeInsets.all(8.0),
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
                                                 child: SizedBox(
                                                   height: 50,
                                                   width: 180,
@@ -614,7 +989,7 @@ class TaskList extends StatelessWidget {
                                                       "Ya",
                                                       style: TextStyle(
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 20,
                                                           color: Colors.white),
                                                     ),
@@ -622,382 +997,34 @@ class TaskList extends StatelessWidget {
                                                       gantiNama = true;
                                                       Navigator.of(editKonteks)
                                                           .pop();
-                                                      showDialog(
-                                                          context: context,
-                                                          builder: (BuildContext
-                                                          konteksUpdate) {
-                                                            return AlertDialog(
-                                                              content: Stack(
-                                                                // ignore: deprecated_member_use
-                                                                overflow: Overflow
-                                                                    .visible,
-                                                                children: <Widget>[
-                                                                  SingleChildScrollView(
-                                                                    child: Form(
-                                                                      key: _formKey,
-                                                                      child:
-                                                                      Container(
-                                                                        child:
-                                                                        Column(
-                                                                          mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .center,
-                                                                          children: <
-                                                                              Widget>[
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child:
-                                                                              SizedBox.fromSize(
-                                                                                size:
-                                                                                Size(1500, 50), // button width and height
-                                                                                child:
-                                                                                ClipRect(
-                                                                                  child: Material(
-                                                                                    color: Colors.blue,
-                                                                                    borderOnForeground: true, // button color
-                                                                                    child: Column(
-                                                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                                                      children: <Widget>[
-                                                                                        Text(
-                                                                                          "Edit Barang",
-                                                                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Colors.white),
-                                                                                        ), // text
-                                                                                      ],
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child:
-                                                                              TextFormField(
-                                                                                textCapitalization:
-                                                                                TextCapitalization.words,
-                                                                                decoration:
-                                                                                InputDecoration(
-                                                                                  border: OutlineInputBorder(),
-                                                                                  labelText: 'Nama Barang',
-                                                                                ),
-                                                                                enabled:
-                                                                                gantiNama,
-                                                                                controller:
-                                                                                controllerNama,
-                                                                                validator:
-                                                                                    (controllerNama) {
-
-                                                                                  update(index, controllerNama);
-                                                                                  print('GN ' + gantiNama.toString());
-                                                                                  print('adadas' + hasil.toString());
-                                                                                  if (controllerNama == null || controllerNama.isEmpty) {
-                                                                                    return 'Masukan Nama Barang Baru';
-                                                                                  } else if (hasil == true) {
-                                                                                    return outputValidasi;
-                                                                                  } else {
-                                                                                    return null;
-                                                                                  }
-                                                                                },
-                                                                              ),
-                                                                            ),
-                                                                            StreamBuilder<
-                                                                                QuerySnapshot>(
-                                                                                stream:
-                                                                                Firestore.instance.collection('kategori').snapshots(),
-                                                                                builder: (context, snapshot) {
-                                                                                  if (!snapshot.hasData) {
-                                                                                    return Text("Tidak bisa mendapatkan data");
-                                                                                  } else {
-                                                                                    List<DropdownMenuItem> kategoriItems = [];
-                                                                                    for (int i = 0; i < snapshot.data.documents.length; i++) {
-                                                                                      DocumentSnapshot snap = snapshot.data.documents[i];
-                                                                                      kategoriItems.add(DropdownMenuItem(
-                                                                                        child: Text(
-                                                                                          snap.data['namaKategori'],
-                                                                                          style: TextStyle(color: Colors.black),
-                                                                                        ),
-                                                                                        value: "${snap.data['namaKategori']}",
-                                                                                      ));
-                                                                                    }
-                                                                                    return Container(
-                                                                                      child: Padding(
-                                                                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                                                                        child: DropdownButtonFormField(
-                                                                                          decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Kategori Barang'),
-                                                                                          value: katBarang,
-                                                                                          items: kategoriItems,
-                                                                                          validator: (value) {
-                                                                                            if (value == null || value.isEmpty) {
-                                                                                              return 'Kategori Barang Wajib Diisi';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                          onChanged: (kategoriValue) {
-                                                                                            setState(() {
-                                                                                              selectedKategoriEdit = kategoriValue;
-                                                                                            });
-                                                                                          },
-                                                                                        ),
-                                                                                      ),
-                                                                                    );
-                                                                                  }
-                                                                                }),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child:
-                                                                              TextFormField(
-                                                                                  decoration:
-                                                                                  InputDecoration(
-                                                                                    border: OutlineInputBorder(),
-                                                                                    labelText: 'Harga Jual Barang',
-                                                                                  ),
-                                                                                  keyboardType: TextInputType
-                                                                                      .number,
-                                                                                  inputFormatters: [
-                                                                                    CurrencyTextInputFormatter(locale: 'id', decimalDigits: 0, symbol: 'Rp')
-                                                                                  ],
-                                                                                  controller: controllerHj,
-                                                                                  validator: (value) {
-                                                                                    if (value == null || value.isEmpty) {
-                                                                                      return 'Harga Jual Wajib Diisi';
-                                                                                    }
-                                                                                    return null;
-                                                                                  }),
-                                                                            ),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child:
-                                                                              TextFormField(
-                                                                                  decoration: InputDecoration(
-                                                                                      border:
-                                                                                      OutlineInputBorder(),
-                                                                                      labelText:
-                                                                                      'Harga Beli Barang'),
-                                                                                  keyboardType: TextInputType
-                                                                                      .number,
-                                                                                  inputFormatters: [
-                                                                                    CurrencyTextInputFormatter(locale: 'id', decimalDigits: 0, symbol: 'Rp')
-                                                                                  ],
-                                                                                  controller: controllerHb,
-                                                                                  validator: (value) {
-                                                                                    if (value == null || value.isEmpty) {
-                                                                                      return 'Harga Beli Wajib Diisi';
-                                                                                    }
-                                                                                    return null;
-                                                                                  }),
-                                                                            ),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child: TextFormField(
-                                                                                  decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Jumlah Stok'),
-                                                                                  keyboardType: TextInputType.number,
-                                                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                                                                                  controller: controllerjmlStok,
-                                                                                  validator: (value) {
-                                                                                    if (value == null || value.isEmpty) {
-                                                                                      return 'Jumlah Stok Wajib Diisi';
-                                                                                    }
-                                                                                    return null;
-                                                                                  }),
-                                                                            ),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child: TextFormField(
-                                                                                decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Minimum Stok'),
-                                                                                keyboardType: TextInputType.number,
-                                                                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                                                                                controller: controllerminStok,
-                                                                              ),
-                                                                            ),
-                                                                            StreamBuilder<
-                                                                                QuerySnapshot>(
-                                                                                stream:
-                                                                                Firestore.instance.collection('supplier').snapshots(),
-                                                                                builder: (context, snapshot) {
-                                                                                  if (!snapshot.hasData) {
-                                                                                    return Text("Tidak bisa mendapatkan data");
-                                                                                  } else {
-                                                                                    List<DropdownMenuItem> supplierItems = [];
-                                                                                    for (int i = 0; i < snapshot.data.documents.length; i++) {
-                                                                                      DocumentSnapshot snap = snapshot.data.documents[i];
-                                                                                      supplierItems.add(DropdownMenuItem(
-                                                                                        child: Text(
-                                                                                          snap.data['namaSupplier'],
-                                                                                          style: TextStyle(color: Colors.black),
-                                                                                        ),
-                                                                                        value: "${snap.data['namaSupplier']}",
-                                                                                      ));
-                                                                                    }
-                                                                                    return Container(
-                                                                                      child: Padding(
-                                                                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                                                                        child: DropdownButtonFormField(
-                                                                                          decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Supplier Barang'),
-                                                                                          value: namaSupplier,
-                                                                                          items: supplierItems,
-                                                                                          validator: (value) {
-                                                                                            if (value == null || value.isEmpty) {
-                                                                                              return 'Supplier Barang Wajib Diisi';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                          onChanged: (supplierValue) {
-                                                                                            setState(() {
-                                                                                              selectedSupplierEdit = supplierValue;
-                                                                                            });
-                                                                                          },
-                                                                                        ),
-                                                                                      ),
-                                                                                    );
-                                                                                  }
-                                                                                }),
-                                                                            Row(
-                                                                              mainAxisAlignment:
-                                                                              MainAxisAlignment.end,
-                                                                              children: <
-                                                                                  Widget>[
-                                                                                Padding(
-                                                                                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                                                                  // ignore: deprecated_member_use
-                                                                                  child: RaisedButton(
-                                                                                    onPressed: () async {
-                                                                                      if (_formKey.currentState.validate()) {
-                                                                                        Navigator.of(konteksUpdate).pop();
-                                                                                      }
-                                                                                    },
-                                                                                    color: Colors.blue,
-                                                                                    child: Padding(
-                                                                                      padding: EdgeInsets.symmetric(vertical: 10),
-                                                                                      child: Row(
-                                                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                                                        children: <Widget>[
-                                                                                          Text(
-                                                                                            'Simpan',
-                                                                                            style: TextStyle(
-                                                                                              fontSize: 20,
-                                                                                              fontWeight: FontWeight.w700,
-                                                                                              color: Colors.white,
-                                                                                            ),
-                                                                                          ),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                                Padding(
-                                                                                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                                                                  child: RaisedButton(
-                                                                                    onPressed: () async {
-                                                                                      showDialog(
-                                                                                          context: context,
-                                                                                          builder: (BuildContext deleteKonteks) {
-                                                                                            return AlertDialog(
-                                                                                              content: Stack(
-                                                                                                // ignore: deprecated_member_use
-                                                                                                overflow: Overflow.visible,
-                                                                                                children: <Widget>[
-                                                                                                  Column(
-                                                                                                    mainAxisSize: MainAxisSize.min,
-                                                                                                    children: <Widget>[
-                                                                                                      Padding(
-                                                                                                        padding: const EdgeInsets.all(8.0),
-                                                                                                        child: Text(
-                                                                                                          "Apakah benar anda ingin menghapus barang" + ' ' + controllerNama.text + "?",
-                                                                                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Colors.black),
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                      Row(
-                                                                                                        mainAxisAlignment : MainAxisAlignment.end,
-                                                                                                          children: <Widget>[
-                                                                                                        Padding(
-                                                                                                          padding: const EdgeInsets.all(8.0),
-                                                                                                          child: SizedBox(
-                                                                                                            height: 50,
-                                                                                                            width: 180,
-                                                                                                            // ignore: deprecated_member_use
-                                                                                                            child: RaisedButton(
-                                                                                                              color: Colors.red,
-                                                                                                              child: Text(
-                                                                                                                "Hapus",
-                                                                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
-                                                                                                              ),
-                                                                                                              onPressed: () {
-                                                                                                                Navigator.of(konteksUpdate).pop();
-                                                                                                                deleteBarang(index, deleteKonteks);
-                                                                                                              },
-                                                                                                            ),
-                                                                                                          ),
-                                                                                                        ),
-                                                                                                        Padding(
-                                                                                                          padding: const EdgeInsets.all(8.0),
-                                                                                                          child: SizedBox(
-                                                                                                            height: 50,
-                                                                                                            width: 180,
-                                                                                                            // ignore: deprecated_member_use
-                                                                                                            child: RaisedButton(
-                                                                                                              child: Text("Batal", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black)),
-                                                                                                              onPressed: () {
-                                                                                                                Navigator.of(deleteKonteks).pop();
-                                                                                                                Navigator.of(konteksUpdate).pop();
-                                                                                                              },
-                                                                                                            ),
-                                                                                                          ),
-                                                                                                        ),
-                                                                                                      ]),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ],
-                                                                                              ),
-                                                                                            );
-                                                                                          });
-                                                                                    },
-                                                                                    color: Colors.redAccent,
-                                                                                    child: Padding(
-                                                                                      padding: EdgeInsets.symmetric(vertical: 10),
-                                                                                      child: Row(
-                                                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                                                        children: <Widget>[
-                                                                                          Text(
-                                                                                            'Hapus',
-                                                                                            style: TextStyle(
-                                                                                              fontSize: 20,
-                                                                                              fontWeight: FontWeight.w700,
-                                                                                              color: Colors.white,
-                                                                                            ),
-                                                                                          ),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            )
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  )
-                                                                ],
-                                                              ),
-                                                            );
-                                                          });
+                                                      Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                EditBarangPage(
+                                                              namaBarang:
+                                                                  namaBarang,
+                                                              hjBarang:
+                                                                  hjBarang,
+                                                              minStok: minStok,
+                                                              katBarang:
+                                                                  katBarang,
+                                                              hbBarang:
+                                                                  hbBarang,
+                                                              jmlStok: jmlStok,
+                                                              namaSupplier:
+                                                                  namaSupplier,
+                                                              index: document[i]
+                                                                  .reference,
+                                                            ),
+                                                          ));
                                                     },
                                                   ),
                                                 ),
                                               ),
                                               Padding(
-                                                padding: const EdgeInsets.all(8.0),
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
                                                 child: SizedBox(
                                                   height: 50,
                                                   width: 180,
@@ -1007,371 +1034,34 @@ class TaskList extends StatelessWidget {
                                                       "Tidak",
                                                       style: TextStyle(
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 20,
                                                           color: Colors.white),
                                                     ),
                                                     onPressed: () {
-                                                      gantiNama = false;
                                                       Navigator.of(editKonteks)
                                                           .pop();
-                                                      showDialog(
-                                                          context: context,
-                                                          builder: (BuildContext
-                                                          konteksUpdate) {
-                                                            return AlertDialog(
-                                                              content: Stack(
-                                                                // ignore: deprecated_member_use
-                                                                overflow: Overflow
-                                                                    .visible,
-                                                                children: <Widget>[
-                                                                  SingleChildScrollView(
-                                                                    child: Form(
-                                                                      key: _formKey,
-                                                                      child:
-                                                                      Container(
-                                                                        child:
-                                                                        Column(
-                                                                          mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .center,
-                                                                          children: <
-                                                                              Widget>[
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child:
-                                                                              SizedBox.fromSize(
-                                                                                size:
-                                                                                Size(1500, 50), // button width and height
-                                                                                child:
-                                                                                ClipRect(
-                                                                                  child: Material(
-                                                                                    color: Colors.blue,
-                                                                                    borderOnForeground: true, // button color
-                                                                                    child: Column(
-                                                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                                                      children: <Widget>[
-                                                                                        Text(
-                                                                                          "Edit Barang",
-                                                                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Colors.white),
-                                                                                        ), // text
-                                                                                      ],
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child:
-                                                                              TextFormField(
-                                                                                textCapitalization:
-                                                                                TextCapitalization.words,
-                                                                                decoration:
-                                                                                InputDecoration(
-                                                                                  border: OutlineInputBorder(),
-                                                                                  labelText: 'Nama Barang',
-                                                                                ),
-                                                                                enabled:
-                                                                                gantiNama,
-                                                                                controller:
-                                                                                controllerNama,
-                                                                              ),
-                                                                            ),
-                                                                            StreamBuilder<
-                                                                                QuerySnapshot>(
-                                                                                stream:
-                                                                                Firestore.instance.collection('kategori').snapshots(),
-                                                                                builder: (context, snapshot) {
-                                                                                  if (!snapshot.hasData) {
-                                                                                    return Text("Tidak bisa mendapatkan data");
-                                                                                  } else {
-                                                                                    List<DropdownMenuItem> kategoriItems = [];
-                                                                                    for (int i = 0; i < snapshot.data.documents.length; i++) {
-                                                                                      DocumentSnapshot snap = snapshot.data.documents[i];
-                                                                                      kategoriItems.add(DropdownMenuItem(
-                                                                                        child: Text(
-                                                                                          snap.data['namaKategori'],
-                                                                                          style: TextStyle(color: Colors.black),
-                                                                                        ),
-                                                                                        value: "${snap.data['namaKategori']}",
-                                                                                      ));
-                                                                                    }
-                                                                                    return Container(
-                                                                                      child: Padding(
-                                                                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                                                                        child: DropdownButtonFormField(
-                                                                                          decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Kategori Barang'),
-                                                                                          value: katBarang,
-                                                                                          items: kategoriItems,
-                                                                                          validator: (value) {
-                                                                                            if (value == null || value.isEmpty) {
-                                                                                              return 'Kategori Barang Wajib Diisi';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                          onChanged: (kategoriValue) {
-                                                                                            setState(() {
-                                                                                              selectedKategoriEdit = kategoriValue;
-                                                                                            });
-                                                                                          },
-                                                                                        ),
-                                                                                      ),
-                                                                                    );
-                                                                                  }
-                                                                                }),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child:
-                                                                              TextFormField(
-                                                                                  decoration:
-                                                                                  InputDecoration(
-                                                                                    border: OutlineInputBorder(),
-                                                                                    labelText: 'Harga Jual Barang',
-                                                                                  ),
-                                                                                  keyboardType: TextInputType
-                                                                                      .number,
-                                                                                  inputFormatters: [
-                                                                                    CurrencyTextInputFormatter(locale: 'id', decimalDigits: 0, symbol: 'Rp')
-                                                                                  ],
-                                                                                  controller: controllerHj,
-                                                                                  validator: (value) {
-                                                                                    if (value == null || value.isEmpty) {
-                                                                                      return 'Harga Jual Wajib Diisi';
-                                                                                    }
-                                                                                    return null;
-                                                                                  }),
-                                                                            ),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child:
-                                                                              TextFormField(
-                                                                                  decoration: InputDecoration(
-                                                                                      border:
-                                                                                      OutlineInputBorder(),
-                                                                                      labelText:
-                                                                                      'Harga Beli Barang'),
-                                                                                  keyboardType: TextInputType
-                                                                                      .number,
-                                                                                  inputFormatters: [
-                                                                                    CurrencyTextInputFormatter(locale: 'id', decimalDigits: 0, symbol: 'Rp')
-                                                                                  ],
-                                                                                  controller: controllerHb,
-                                                                                  validator: (value) {
-                                                                                    if (value == null || value.isEmpty) {
-                                                                                      return 'Harga Beli Wajib Diisi';
-                                                                                    }
-                                                                                    return null;
-                                                                                  }),
-                                                                            ),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child: TextFormField(
-                                                                                  decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Jumlah Stok'),
-                                                                                  keyboardType: TextInputType.number,
-                                                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                                                                                  controller: controllerjmlStok,
-                                                                                  validator: (value) {
-                                                                                    if (value == null || value.isEmpty) {
-                                                                                      return 'Jumlah Stok Wajib Diisi';
-                                                                                    }
-                                                                                    return null;
-                                                                                  }),
-                                                                            ),
-                                                                            Padding(
-                                                                              padding: EdgeInsets.symmetric(
-                                                                                  vertical: 10,
-                                                                                  horizontal: 10),
-                                                                              child: TextFormField(
-                                                                                decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Minimum Stok'),
-                                                                                keyboardType: TextInputType.number,
-                                                                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                                                                                controller: controllerminStok,
-                                                                              ),
-                                                                            ),
-                                                                            StreamBuilder<
-                                                                                QuerySnapshot>(
-                                                                                stream:
-                                                                                Firestore.instance.collection('supplier').snapshots(),
-                                                                                builder: (context, snapshot) {
-                                                                                  if (!snapshot.hasData) {
-                                                                                    return Text("Tidak bisa mendapatkan data");
-                                                                                  } else {
-                                                                                    List<DropdownMenuItem> supplierItems = [];
-                                                                                    for (int i = 0; i < snapshot.data.documents.length; i++) {
-                                                                                      DocumentSnapshot snap = snapshot.data.documents[i];
-                                                                                      supplierItems.add(DropdownMenuItem(
-                                                                                        child: Text(
-                                                                                          snap.data['namaSupplier'],
-                                                                                          style: TextStyle(color: Colors.black),
-                                                                                        ),
-                                                                                        value: "${snap.data['namaSupplier']}",
-                                                                                      ));
-                                                                                    }
-                                                                                    return Container(
-                                                                                      child: Padding(
-                                                                                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                                                                        child: DropdownButtonFormField(
-                                                                                          decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Supplier Barang'),
-                                                                                          value: namaSupplier,
-                                                                                          items: supplierItems,
-                                                                                          validator: (value) {
-                                                                                            if (value == null || value.isEmpty) {
-                                                                                              return 'Supplier Barang Wajib Diisi';
-                                                                                            }
-                                                                                            return null;
-                                                                                          },
-                                                                                          onChanged: (supplierValue) {
-                                                                                            setState(() {
-                                                                                              selectedSupplierEdit = supplierValue;
-                                                                                            });
-                                                                                          },
-                                                                                        ),
-                                                                                      ),
-                                                                                    );
-                                                                                  }
-                                                                                }),
-                                                                            Row(
-                                                                              mainAxisAlignment:
-                                                                              MainAxisAlignment.end,
-                                                                              children: <
-                                                                                  Widget>[
-                                                                                Padding(
-                                                                                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                                                                  // ignore: deprecated_member_use
-                                                                                  child: RaisedButton(
-                                                                                    onPressed: () async {
-                                                                                      if (_formKey.currentState.validate()) {
-                                                                                        Navigator.of(konteksUpdate).pop();
-                                                                                      }
-                                                                                    },
-                                                                                    color: Colors.blue,
-                                                                                    child: Padding(
-                                                                                      padding: EdgeInsets.symmetric(vertical: 10),
-                                                                                      child: Row(
-                                                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                                                        children: <Widget>[
-                                                                                          Text(
-                                                                                            'Simpan',
-                                                                                            style: TextStyle(
-                                                                                              fontSize: 20,
-                                                                                              fontWeight: FontWeight.w700,
-                                                                                              color: Colors.white,
-                                                                                            ),
-                                                                                          ),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                                Padding(
-                                                                                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                                                                                  child: RaisedButton(
-                                                                                    onPressed: () async {
-                                                                                      showDialog(
-                                                                                          context: context,
-                                                                                          builder: (BuildContext deleteKonteks) {
-                                                                                            return AlertDialog(
-                                                                                              content: Stack(
-                                                                                                // ignore: deprecated_member_use
-                                                                                                overflow: Overflow.visible,
-                                                                                                children: <Widget>[
-                                                                                                  Column(
-                                                                                                    mainAxisSize: MainAxisSize.min,
-                                                                                                    children: <Widget>[
-                                                                                                      Padding(
-                                                                                                        padding: const EdgeInsets.all(8.0),
-                                                                                                        child: Text(
-                                                                                                          "Apakah benar anda ingin menghapus barang" + ' ' + controllerNama.text + "?",
-                                                                                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Colors.black),
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                      Row(
-                                                                                                          mainAxisAlignment : MainAxisAlignment.end,
-                                                                                                          children: <Widget>[
-
-                                                                                                        Padding(
-                                                                                                          padding: const EdgeInsets.all(8.0),
-                                                                                                          child: SizedBox(
-                                                                                                            height: 50,
-                                                                                                            width: 180,
-                                                                                                            // ignore: deprecated_member_use
-                                                                                                            child: RaisedButton(
-                                                                                                              color: Colors.red,
-                                                                                                              child: Text(
-                                                                                                                "Hapus",
-                                                                                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
-                                                                                                              ),
-                                                                                                              onPressed: () {
-                                                                                                                Navigator.of(konteksUpdate).pop();
-                                                                                                                deleteBarang(index, deleteKonteks);
-                                                                                                              },
-                                                                                                            ),
-                                                                                                          ),
-                                                                                                        ),
-                                                                                                        Padding(
-                                                                                                          padding: const EdgeInsets.all(8.0),
-                                                                                                          child: SizedBox(
-                                                                                                            height: 50,
-                                                                                                            width: 180,
-                                                                                                            // ignore: deprecated_member_use
-                                                                                                            child: RaisedButton(
-                                                                                                              child: Text("Batal", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black)),
-                                                                                                              onPressed: () {
-                                                                                                                Navigator.of(deleteKonteks).pop();
-                                                                                                                Navigator.of(konteksUpdate).pop();
-                                                                                                              },
-                                                                                                            ),
-                                                                                                          ),
-                                                                                                        ),
-                                                                                                      ]),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ],
-                                                                                              ),
-                                                                                            );
-                                                                                          });
-                                                                                    },
-                                                                                    color: Colors.redAccent,
-                                                                                    child: Padding(
-                                                                                      padding: EdgeInsets.symmetric(vertical: 10),
-                                                                                      child: Row(
-                                                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                                                        children: <Widget>[
-                                                                                          Text(
-                                                                                            'Hapus',
-                                                                                            style: TextStyle(
-                                                                                              fontSize: 20,
-                                                                                              fontWeight: FontWeight.w700,
-                                                                                              color: Colors.white,
-                                                                                            ),
-                                                                                          ),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            )
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  )
-                                                                ],
-                                                              ),
-                                                            );
-                                                          });
+                                                      Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                TanpaNamaPage(
+                                                              namaBarang:
+                                                                  namaBarang,
+                                                              hjBarang:
+                                                                  hjBarang,
+                                                              minStok: minStok,
+                                                              katBarang:
+                                                                  katBarang,
+                                                              hbBarang:
+                                                                  hbBarang,
+                                                              jmlStok: jmlStok,
+                                                              namaSupplier:
+                                                                  namaSupplier,
+                                                              index: document[i]
+                                                                  .reference,
+                                                            ),
+                                                          ));
                                                     },
                                                   ),
                                                 ),
@@ -1387,14 +1077,12 @@ class TaskList extends StatelessWidget {
                                               child: Text(
                                                 "Cancel",
                                                 style: TextStyle(
-                                                    fontWeight:
-                                                    FontWeight.bold,
+                                                    fontWeight: FontWeight.bold,
                                                     fontSize: 20,
                                                     color: Colors.white),
                                               ),
                                               onPressed: () {
-                                                Navigator.of(editKonteks)
-                                                    .pop();
+                                                Navigator.of(editKonteks).pop();
                                               },
                                             ),
                                           ),
@@ -1408,7 +1096,12 @@ class TaskList extends StatelessWidget {
                           );
                         });
                   },
-                  leading: Icon(Icons.format_list_bulleted),
+                  leading: Icon(
+                    intMinStok <= intJmlStok
+                        ? Icons.format_list_bulleted
+                        : Icons.report,
+                    color: Colors.black,
+                  ),
                   title: Text(
                     namaBarang,
                     style: TextStyle(fontSize: 20),
@@ -1427,6 +1120,4 @@ class TaskList extends StatelessWidget {
       },
     );
   }
-
-  void setState(Null Function() param0) {}
 }
