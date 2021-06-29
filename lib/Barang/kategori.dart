@@ -243,16 +243,12 @@ class TaskList extends StatelessWidget {
   bool adaFile;
   bool fileUsed;
 
-  Future getdbBarang()async{
-    await Firestore.instance.collection('barang').snapshots().listen((dbBarang) {
 
-    });
-  }
 
-  Future<bool> update(
-      DocumentReference index, String value, BuildContext konteksUpdate) async {
-    final QuerySnapshot result = await Firestore.instance
-        .collection('kategori')
+
+
+  Future<bool> update(DocumentReference index, String value, BuildContext konteksUpdate) async {
+    final QuerySnapshot result = await Firestore.instance.collection('kategori')
         .where('namaKategori', isEqualTo: value)
         .limit(1)
         .getDocuments();
@@ -265,8 +261,6 @@ class TaskList extends StatelessWidget {
         DocumentSnapshot snapshot = await transaction.get(index);
         await transaction.update(snapshot.reference, {"namaKategori": value});
       });
-
-
 
       Navigator.of(konteksUpdate).pop();
       final snackBar = SnackBar(content: Text('Nama Kategori berhasil diubah'));
@@ -292,21 +286,29 @@ class TaskList extends StatelessWidget {
             TextEditingController(text: namaKategori);
         final index = document[i].reference;
 
-        Future<bool> updateBarang(DocumentReference index) async {
+
+        Future<bool> updateBarang() async {
           final QuerySnapshot result = await Firestore.instance
               .collection('barang')
-              .where('kategoriBarang', isEqualTo: editKategori.text)
-              .limit(1)
+              .where('kategoriBarang', isEqualTo: namaKategori)
               .getDocuments();
-          final List<DocumentSnapshot> dbBarang = await result.documents;
-          if (dbBarang.length >= 1) {
-            adaBarang = true;
-          } else {
-            adaBarang = false;
+          final List<DocumentSnapshot> documents = result.documents.toList();
+print(documents[i]['namaBarang']);
+          for (var j = 0; j < documents.length; j++) {
+            Firestore.instance.collection('barang')
+                .document(documents[j]['namaBarang']).updateData({
+              "kategoriBarang": editKategori.text,
+            }).then((result){
+              print("new USer true");
+            }).catchError((onError){
+              print("onError");
+            });
+
           }
 
-          return null;
+
         }
+
 
         // ignore: missing_return
         Future<bool> deleteKategori(
@@ -365,16 +367,17 @@ class TaskList extends StatelessWidget {
                           icon: Icon(Icons.edit),
                           color: Colors.blue,
                           onPressed: () async {
-                            updateBarang(index);
-                            print('adabarang' + adaBarang.toString());
-                            if (adaBarang == true) {
-                              final snackBar = SnackBar(
-                                  content: Text('Kategori ' +
-                                      namaKategori +
-                                      ' tidak dapat diubah karna berkaitan Data Barang'));
-                              ScaffoldMessenger.of(konteks)
-                                  .showSnackBar(snackBar);
-                            } else if (adaBarang == false) {
+
+
+                            // if (adaBarang == true) {
+                            //   final snackBar = SnackBar(
+                            //       content: Text('Kategori ' +
+                            //           namaKategori +
+                            //           ' tidak dapat diubah karna berkaitan Data Barang'));
+                            //   ScaffoldMessenger.of(konteks)
+                            //       .showSnackBar(snackBar);
+                            // }
+
                               showDialog(
                                   context: context,
                                   builder: (BuildContext konteksUpdate) {
@@ -409,6 +412,7 @@ class TaskList extends StatelessWidget {
                                                       ),
                                                       validator: (value) {
                                                     update(index, value, konteksUpdate);
+                                                    updateBarang();
                                                         if (value == null ||
                                                             value.isEmpty) {
                                                           return 'Masukan Nama Kategori Baru';
@@ -449,7 +453,9 @@ class TaskList extends StatelessWidget {
                                                                 () async {
                                                               if (_formKey
                                                                   .currentState
-                                                                  .validate()) ;
+                                                                  .validate()){
+
+                                                              } ;
                                                             },
                                                           ),
                                                         ),
@@ -489,7 +495,7 @@ class TaskList extends StatelessWidget {
                                       ),
                                     );
                                   });
-                            }
+
                           }),
                       new IconButton(
                           icon: Icon(Icons.delete),

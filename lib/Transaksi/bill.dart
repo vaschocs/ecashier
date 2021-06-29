@@ -6,6 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../main.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -24,36 +26,41 @@ class MyApp extends StatelessWidget {
 }
 
 class BillPage extends StatefulWidget {
-  BillPage(
-      {this.namaBarang,
-      this.katBarang,
-      this.hjBarang,
-      this.hbBarang,
-      this.jmlStok,
-      this.minStok,
-      this.namaSupplier,
-      this.index});
+  BillPage({
+    this.namaBarang,
+    this.hbBarang,
+    this.jmlStok,
+    this.minStok,
+  });
 
   final String namaBarang;
-  final String katBarang;
-  final String hjBarang;
+
   final String hbBarang;
   final String jmlStok;
   final String minStok;
-  final index;
 
-  final String namaSupplier;
   @override
   _BillPageState createState() => _BillPageState();
 }
 
-class BillItem {
-  BillItem({this.namaBarang, this.hargaBarang, this.indeksBaru,this.jumlahStok});
+class DataBarang {
+  DataBarang(
+      {this.namaBarang, this.hbBarang, this.totalPembelian, this.jmlBarang});
 
   final String namaBarang;
-  final String hargaBarang;
-  final indeksBaru;
-  final String jumlahStok;
+  final String hbBarang;
+  final jmlBarang;
+  final String totalPembelian;
+}
+
+class BillItem {
+  BillItem(
+      {this.namaBarang, this.hbBarang, this.totalPembelian, this.jmlBarang});
+
+  final String namaBarang;
+  final String hbBarang;
+  final jmlBarang;
+  final String totalPembelian;
 }
 
 List<BillItem> items = [];
@@ -62,18 +69,16 @@ Map<String, int> countItem = new Map<String, int>();
 
 class _BillPageState extends State<BillPage> {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  var itemName;
-  var itemPrice;
   var namaBarang;
-  var newIndex;
+  var hbBarang;
   var jmlStok;
-  var intStokLocal;
+
   var jmlHarga = 0;
-  var intPrice;
+
   var harga;
   var totalHarga;
-  bool uangCukup;
-  var index;
+  var semuaHarga = 0;
+
   DateTime now = DateTime.now();
   String formattedDate;
   TextEditingController uangTerima = TextEditingController();
@@ -83,41 +88,29 @@ class _BillPageState extends State<BillPage> {
   var intStok;
 
 
-
   void initState() {
     super.initState();
 
     jmlStok = widget.jmlStok;
-    intStokLocal = int.parse(jmlStok);
-    assert(intStokLocal is int);
-    intStokLocal = intStokLocal - 1;
-    newIndex = widget.index;
-    itemName = widget.namaBarang;
-    itemPrice = widget.hjBarang;
+    namaBarang = widget.namaBarang;
+    hbBarang = widget.hbBarang;
 
-    var newPrice = itemPrice.substring(2);
-
-
-
-    if (countItem.containsKey(itemName)) {
-      countItem[itemName] += 1;
+    if (countItem.containsKey(namaBarang)) {
+      countItem[namaBarang] += 1;
     } else {
-      countItem[itemName] = 1;
-      items.add(BillItem(namaBarang: itemName, hargaBarang: newPrice,indeksBaru: newIndex,jumlahStok:jmlStok));
+      countItem[namaBarang] = 1;
+      items.add(BillItem(namaBarang: namaBarang, hbBarang: hbBarang));
     }
   }
 
   Iterable<DataRow> mapItemDataRows(List<BillItem> items) {
     Iterable<DataRow> dataRows = items.map((item) {
-      var newPrice = item.hargaBarang;
-      var fixPrice = newPrice.replaceAll(".", "");
-      intPrice = int.parse(fixPrice);
-      assert(intPrice is int);
-      harga = countItem[item.namaBarang] * intPrice;
-      jmlHarga = jmlHarga + harga;
+      var hbBarang = item.hbBarang.substring(2);
+      var hargaBarang = hbBarang.replaceAll(".", "");
 
-      intStok = int.parse(item.jumlahStok);
-      assert(intStok is int);
+      totalHarga = int.parse(hargaBarang) * countItem[item.namaBarang];
+
+      semuaHarga += totalHarga;
 
       return DataRow(cells: [
         DataCell(
@@ -126,28 +119,32 @@ class _BillPageState extends State<BillPage> {
           ),
         ),
         DataCell(
-          Text(intPrice.toString()),
+          Text(hargaBarang),
         ),
         DataCell(Text(countItem[item.namaBarang].toString())),
-        DataCell(Text((harga).toString())),
+        DataCell(Text((totalHarga).toString())),
         DataCell(TextButton.icon(
           onPressed: () async {
-            await Firestore.instance
-                .runTransaction((Transaction transaction) async {
-              DocumentSnapshot snapshot = await transaction.get(newIndex);
-              await transaction.update(snapshot.reference, {
-                'jmlStok':  intStok + countItem[item.namaBarang],
-              });
-            });
-            print(intStokLocal+countItem[item.namaBarang]);
-
+            // await Firestore.instance
+            //     .runTransaction((Transaction transaction) async {
+            //   DocumentSnapshot snapshot = await transaction.get(newIndex);
+            //   await transaction.update(snapshot.reference, {
+            //     'jmlStok': intStok + countItem[item.namaBarang],
+            //   });
+            // });
+            // print(intStokLocal + countItem[item.namaBarang]);
+            //
             setState(() {
-              var newPrice = item.hargaBarang;
-              var fixPrice = newPrice.replaceAll(".", "");
-              intPrice = int.parse(fixPrice);
-              assert(intPrice is int);
-              harga = countItem[item.namaBarang] * intPrice;
-              jmlHarga = (jmlHarga - harga);
+              // var newPrice = item.hargaBarang;
+              // var fixPrice = newPrice.replaceAll(".", "");
+              // intPrice = int.parse(fixPrice);
+              // assert(intPrice is int);
+              // harga = countItem[item.namaBarang] * intPrice;
+              // jmlHarga = (jmlHarga - harga);
+              semuaHarga = semuaHarga -
+                  int.parse(hargaBarang) * countItem[item.namaBarang];
+              print(semuaHarga);
+
               items.remove(item);
               countItem.remove(item.namaBarang);
             });
@@ -166,6 +163,17 @@ class _BillPageState extends State<BillPage> {
     return dataRows;
   }
 
+  int getNama(namaBarang) {
+    for (int a = 0; a < TransaksiItem.length; a++) {
+      if (namaBarang == TransaksiItem[a]['namaBarang']) {
+        return TransaksiItem[a]['jmlStok'];
+      }
+    }
+    return null;
+  }
+
+  String outputValidasi = 'Masukan jumlah uang yang diterima';
+  String uangKurang = 'Uang tidak memenuhi total pembelian';
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +308,7 @@ class _BillPageState extends State<BillPage> {
                                 border: Border.all(
                               color: Colors.black,
                             )),
-                            child: Text(jmlHarga.toString()),
+                            child: Text((semuaHarga).toString()),
                           ),
                         ],
                       ),
@@ -326,7 +334,6 @@ class _BillPageState extends State<BillPage> {
                                   style: TextStyle(fontSize: 30),
                                 ),
                                 onPressed: () {
-
                                   showDialog(
                                       context: context,
                                       builder: (BuildContext konteksUTerima) {
@@ -338,103 +345,73 @@ class _BillPageState extends State<BillPage> {
                                               Form(
                                                 key: formKey,
                                                 child: Container(
-                                                  height: 200,
-                                                  width: 400,
+
                                                   child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
+                                                    mainAxisSize: MainAxisSize.min,
                                                     children: <Widget>[
-                                                      Text(
-                                                        'Jumlah Uang Diterima',
+                                                      Text('Jumlah Uang Diterima',
                                                         style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            fontWeight: FontWeight.bold,
                                                             fontSize: 30),
                                                       ),
                                                       Container(
                                                         height: 20,
                                                       ),
-                                                      Padding(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
+                                                      Padding(padding: EdgeInsets.symmetric(
                                                                 vertical: 10,
                                                                 horizontal: 10),
                                                         child: TextFormField(
-                                                          inputFormatters: [
-                                                            CurrencyTextInputFormatter(
-                                                                locale: 'id',
-                                                                decimalDigits:
-                                                                    0,
-                                                                symbol: 'Rp')
-                                                          ],
-                                                          decoration:
-                                                              InputDecoration(
-                                                            border:
-                                                                OutlineInputBorder(),
-                                                            labelText:
-                                                                'Uang Diterima',
+                                                          decoration: InputDecoration(
+                                                            border: OutlineInputBorder(),
+                                                            labelText: 'Uang Diterima',
                                                           ),
-                                                          keyboardType:
-                                                              TextInputType
-                                                                  .number,
-                                                          controller:
-                                                              uangTerima,
+                                                          keyboardType: TextInputType.number,
+                                                          controller: uangTerima,
                                                           validator: (value) {
-                                                            if (uangTerima ==
-                                                                    null ||
-                                                                uangTerima.text
-                                                                    .isEmpty) {
-                                                              return 'Masukan jumlah uang yang diterima';
+                                                            if (uangTerima == null || uangTerima.text.isEmpty) {
+                                                              return outputValidasi;
+                                                            }else if(int.parse(uangTerima.text) < semuaHarga){
+                                                              return uangKurang;
                                                             }
                                                             return null;
                                                           },
                                                         ),
                                                       ),
                                                       Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
+                                                        mainAxisAlignment: MainAxisAlignment.center,
                                                         children: <Widget>[
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(8.0),
+                                                          Padding(padding: const EdgeInsets.all(8.0),
                                                             child: SizedBox(
                                                               height: 50,
                                                               width: 180,
-                                                              child:
-                                                                  RaisedButton(
-                                                                      color: Colors
-                                                                          .blue,
-                                                                      child:
-                                                                          Text(
-                                                                        "Bayar",
+                                                              child: RaisedButton(
+                                                                      color: Colors.blue,
+                                                                      child: Text("Bayar Fix",
                                                                         style: TextStyle(
-                                                                            fontWeight: FontWeight
-                                                                                .bold,
-                                                                            fontSize:
-                                                                                20,
-                                                                            color:
-                                                                                Colors.white),
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontSize: 20,
+                                                                            color: Colors.white),
                                                                       ),
-                                                                      onPressed:
-                                                                          () {
-                                                                        setState(
-                                                                            () {
-                                                                          terima = uangTerima
-                                                                              .text
-                                                                              .substring(2);
-                                                                          fixTerima = terima.replaceAll(
-                                                                              ".",
-                                                                              "");
-                                                                          intTerima =
-                                                                              int.parse(fixTerima);
-                                                                          assert(intTerima
-                                                                              is int);
-                                                                        });
-                                                                        if (formKey
-                                                                            .currentState
-                                                                            .validate()) {
+                                                                      onPressed: () {
+                                                                        if (formKey.currentState.validate()) {
+                                                                          List<String>hasilKey = countItem.keys.toList();
+                                                                          for (var j = 0; j < hasilKey.length; j++) {
+                                                                            Firestore.instance.collection('barang').document(hasilKey[j]).updateData({
+                                                                              "jmlStok": getNama(hasilKey[j]),
+                                                                            }).then((result) {
+                                                                              print("new USer true");
+                                                                            }).catchError((onError) {
+                                                                              print("onError");
+                                                                            });
+                                                                            // Firestore.instance.runTransaction((Transaction transaction) async {
+                                                                            //   DocumentSnapshot snapshot =
+                                                                            //   await transaction.get();
+                                                                            //   await transaction.update(snapshot.reference,
+                                                                            //       {'kategoriPergerakan': kategori, 'minStok': minimalStok});
+                                                                            // });
+                                                                          }
+                                                                          ;
+
                                                                           Navigator.of(konteksUTerima)
                                                                               .pop();
                                                                           showDialog(
@@ -496,7 +473,7 @@ class _BillPageState extends State<BillPage> {
                                                                                                     ),
                                                                                                   ),
                                                                                                   Container(
-                                                                                                    child: Text('Rp' + jmlHarga.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                    child: Text('Rp' + semuaHarga.toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                                                                                                   )
                                                                                                 ],
                                                                                               ),
@@ -513,7 +490,7 @@ class _BillPageState extends State<BillPage> {
                                                                                                     ),
                                                                                                   ),
                                                                                                   Container(
-                                                                                                    child: Text(uangTerima.text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                    child: Text('Rp' + uangTerima.text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                                                                                                   )
                                                                                                 ],
                                                                                               ),
@@ -530,7 +507,7 @@ class _BillPageState extends State<BillPage> {
                                                                                                     ),
                                                                                                   ),
                                                                                                   Container(
-                                                                                                    child: Text('Rp' + (intTerima - jmlHarga).toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                    child: Text('Rp' + (int.parse(uangTerima.text) - semuaHarga).toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                                                                                                   )
                                                                                                 ],
                                                                                               ),
@@ -552,9 +529,11 @@ class _BillPageState extends State<BillPage> {
                                                                                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
                                                                                                         ),
                                                                                                         onPressed: () async {
+                                                                                                          getData();
                                                                                                           setState(() {
                                                                                                             uangTerima.text = '';
                                                                                                             jmlHarga = 0;
+                                                                                                            semuaHarga = 0;
                                                                                                           });
                                                                                                           Navigator.of(konteksBill).pop();
                                                                                                         },
@@ -573,6 +552,13 @@ class _BillPageState extends State<BillPage> {
                                                                               });
                                                                         }
                                                                         ;
+                                                                        setState(
+                                                                            () {
+                                                                          items
+                                                                              .clear();
+                                                                          countItem
+                                                                              .clear();
+                                                                        });
                                                                       }),
                                                             ),
                                                           ),
@@ -613,10 +599,6 @@ class _BillPageState extends State<BillPage> {
                                           ),
                                         );
                                       });
-                                  setState(() {
-                                    items.clear();
-                                    countItem.clear();
-                                  });
                                 },
                               ),
                             ))),
@@ -647,6 +629,4 @@ class _BillPageState extends State<BillPage> {
           )),
     );
   }
-
-
 }

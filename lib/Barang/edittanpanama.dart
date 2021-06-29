@@ -160,16 +160,13 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                   ),
                 ),
                 StreamBuilder<QuerySnapshot>(
-                    stream:
-                        Firestore.instance.collection('kategori').snapshots(),
+                    stream: Firestore.instance.collection('kategori').snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return Text("Tidak bisa mendapatkan data");
                       } else {
                         List<DropdownMenuItem> kategoriItems = [];
-                        for (int i = 0;
-                            i < snapshot.data.documents.length;
-                            i++) {
+                        for (int i = 0; i < snapshot.data.documents.length; i++) {
                           DocumentSnapshot snap = snapshot.data.documents[i];
                           kategoriItems.add(DropdownMenuItem(
                             child: Text(

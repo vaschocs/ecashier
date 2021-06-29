@@ -35,6 +35,7 @@ class _AnalisPageState extends State<AnalisPage> {
 
   void initState() {
     super.initState();
+
   }
 
   @override
@@ -108,6 +109,8 @@ class TaskList extends StatelessWidget {
         String rataJual = document[i].data['rataPenjualan'].toString();
         String rataJualTinggi =
             document[i].data['rataPenjualanTinggi'].toString();
+
+
 
         var ltDemand;
         ltDemand = int.parse(waktuPesan) * int.parse(rataJual);
@@ -254,6 +257,29 @@ class TaskList extends StatelessWidget {
                                                 ),
                                                 Row(
                                                   mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                                  children: <Widget>[
+                                                    Text(
+                                                      'Lama Penyimpanan',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                          FontWeight.bold,
+                                                          fontSize: 20),
+                                                    ),
+                                                    Text(selisihHari.toString() + ' hari',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                          FontWeight.bold,
+                                                          fontSize: 20),
+                                                    )
+                                                  ],
+                                                ),
+                                                Container(
+                                                  height: 20,
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
                                                       MainAxisAlignment
                                                           .spaceBetween,
                                                   children: <Widget>[
@@ -339,7 +365,7 @@ class TaskList extends StatelessWidget {
                                               // ignore: deprecated_member_use
                                               child: RaisedButton(
                                                 onPressed: () async {
-                                                  print('tes' + tor.toString());
+
                                                   update();
                                                   Navigator.of(analisisbarang)
                                                       .pop();
@@ -389,7 +415,7 @@ class TaskList extends StatelessWidget {
                       style: TextStyle(fontSize: 18, color: Colors.black),
                     ),
                     trailing: Text(
-                      analisis,
+                      analisis.toString(),
                       style: TextStyle(fontSize: 20, color: Colors.black),
                     ))),
           ),

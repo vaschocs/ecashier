@@ -455,35 +455,26 @@ class _ProdukPageState extends State<ProdukPage> {
                                                                 hbBarang,
                                                           ),
                                                         ),
-                                                        Padding(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
+                                                        Padding(padding: EdgeInsets.symmetric(
                                                                   vertical: 10,
-                                                                  horizontal:
-                                                                      10),
+                                                                  horizontal: 10),
                                                           child: TextFormField(
-                                                            decoration:
-                                                                InputDecoration(
-                                                              border:
-                                                                  OutlineInputBorder(),
-                                                              labelText:
-                                                                  'Harga Jual Barang',
+                                                            decoration: InputDecoration(
+                                                              border: OutlineInputBorder(),
+                                                              labelText: 'Harga Jual Barang',
                                                             ),
-                                                            inputFormatters: [
+                                                            inputFormatters:
+                                                            [
                                                               CurrencyTextInputFormatter(
                                                                   locale: 'id',
-                                                                  decimalDigits:
-                                                                      0,
-                                                                  symbol: 'Rp')
-                                                            ],
+                                                                  decimalDigits: 0,
+                                                                  symbol: 'Rp')],
                                                             validator: (value) {
-                                                              if (value ==
-                                                                      null ||
-                                                                  value
-                                                                      .isEmpty) {
+                                                              if (value == null || value.isEmpty) {
                                                                 return 'Harga Jual Wajib Diisi';
-                                                              }
+                                                              }else if(hbBarang>hjBarang) {
 
+                                                              }
                                                               return null;
                                                             },
                                                             keyboardType:
