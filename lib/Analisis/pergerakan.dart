@@ -4,22 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() => runApp(MyApp());
-var intStok;
-var itemName;
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    itemName = null;
     return MaterialApp(
-        title: 'Transaksi',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+        title: 'Analisis Pergerakan Barang',
+        theme: ThemeData(primarySwatch: Colors.blue),
         debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: AnalisPage(),
-        ));
+        home: Scaffold(body: AnalisPage(),));
   }
 }
 
@@ -43,9 +36,7 @@ class _AnalisPageState extends State<AnalisPage> {
     return Scaffold(
       drawer: SideDrawer(),
       appBar: AppBar(
-        title: Text(
-          'Analisis Produk',
-        ),
+        title: Text('Analisis Produk',),
         backgroundColor: Colors.blue,
       ),
       body: Column(
@@ -93,10 +84,7 @@ class TaskList extends StatelessWidget {
   Widget build(BuildContext context) {
     return new ListView.builder(
       itemCount: document.length,
-      itemBuilder: (
-        BuildContext context,
-        int i,
-      ) {
+      itemBuilder: (BuildContext context, int i,) {
         String namaBarang = document[i].data['namaBarang'].toString();
         String hjBarang = document[i].data['hjBarang'].toString();
         String jmlStok = document[i].data['jmlStok'].toString();
@@ -107,55 +95,33 @@ class TaskList extends StatelessWidget {
         String waktuPesan = document[i].data['waktuPesan'].toString();
         String waktuPesanLama = document[i].data['waktuPesanLama'].toString();
         String rataJual = document[i].data['rataPenjualan'].toString();
-        String rataJualTinggi =
-            document[i].data['rataPenjualanTinggi'].toString();
+        String rataJualTinggi = document[i].data['rataPenjualanTinggi'].toString();
 
 
+        var rata2,torp,minimalStok,safetyStock,ltDemand,wsp,tor;
+        String kategori;
 
-        var ltDemand;
         ltDemand = int.parse(waktuPesan) * int.parse(rataJual);
-
-        var safetyStock;
-        safetyStock =
-            (((int.parse(waktuPesanLama) * int.parse(rataJualTinggi))) -
-                (int.parse(waktuPesan) * int.parse(rataJual)));
-
-        var minimalStok;
+        safetyStock = (((int.parse(waktuPesanLama) * int.parse(rataJualTinggi))) - (int.parse(waktuPesan) * int.parse(rataJual)));
+        rata2 = (int.parse(stokAwal) + int.parse(jmlStok)) / 2;
+        torp = int.parse(stokPakai) / rata2;
         minimalStok = ltDemand + safetyStock;
-
-        var intJumlah = int.parse(jmlStok);
-        assert(intJumlah is int);
-
-        var intStokAwal = int.parse(stokAwal);
-
-        var intStokPakai = int.parse(stokPakai);
-
-        var rata2;
-        rata2 = (intStokAwal + intJumlah) / 2;
-
-        var torp;
-        torp = intStokPakai / rata2;
 
         DateTime startDate = DateTime.parse(waktu);
         DateTime endDate = DateTime.now();
         final selisihHari = endDate.difference(startDate).inDays;
-
-        var wsp;
         wsp = selisihHari / torp;
-
-        var tor;
         tor = 365 / wsp;
 
-        String kategori;
+
 
         Future<bool> update() async {
           Firestore.instance.runTransaction((Transaction transaction) async {
-            DocumentSnapshot snapshot =
-                await transaction.get(document[i].reference);
-            await transaction.update(snapshot.reference,
-                {'kategoriPergerakan': kategori, 'minStok': minimalStok});
+            DocumentSnapshot snapshot = await transaction.get(document[i].reference);
+            await transaction.update(snapshot.reference, {
+              'kategoriPergerakan': kategori,
+              'minStok': minimalStok});
           });
-
           return null;
         }
 

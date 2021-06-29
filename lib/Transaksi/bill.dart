@@ -31,22 +31,21 @@ class BillPage extends StatefulWidget {
     this.hbBarang,
     this.jmlStok,
     this.minStok,
+    this.indexBarang
   });
 
   final String namaBarang;
-
   final String hbBarang;
   final String jmlStok;
   final String minStok;
+  final String indexBarang;
 
   @override
   _BillPageState createState() => _BillPageState();
 }
 
 class DataBarang {
-  DataBarang(
-      {this.namaBarang, this.hbBarang, this.totalPembelian, this.jmlBarang});
-
+  DataBarang({this.namaBarang, this.hbBarang, this.totalPembelian, this.jmlBarang});
   final String namaBarang;
   final String hbBarang;
   final jmlBarang;
@@ -54,8 +53,7 @@ class DataBarang {
 }
 
 class BillItem {
-  BillItem(
-      {this.namaBarang, this.hbBarang, this.totalPembelian, this.jmlBarang});
+  BillItem({this.namaBarang, this.hbBarang, this.totalPembelian, this.jmlBarang});
 
   final String namaBarang;
   final String hbBarang;
@@ -74,7 +72,7 @@ class _BillPageState extends State<BillPage> {
   var jmlStok;
 
   var jmlHarga = 0;
-
+var indeksBarang;
   var harga;
   var totalHarga;
   var semuaHarga = 0;
@@ -82,15 +80,10 @@ class _BillPageState extends State<BillPage> {
   DateTime now = DateTime.now();
   String formattedDate;
   TextEditingController uangTerima = TextEditingController();
-  var terima;
-  var fixTerima;
-  var intTerima;
-  var intStok;
-
 
   void initState() {
     super.initState();
-
+indeksBarang = widget.indexBarang;
     jmlStok = widget.jmlStok;
     namaBarang = widget.namaBarang;
     hbBarang = widget.hbBarang;
@@ -105,24 +98,15 @@ class _BillPageState extends State<BillPage> {
 
   Iterable<DataRow> mapItemDataRows(List<BillItem> items) {
     Iterable<DataRow> dataRows = items.map((item) {
-      var hbBarang = item.hbBarang.substring(2);
-      var hargaBarang = hbBarang.replaceAll(".", "");
 
-      totalHarga = int.parse(hargaBarang) * countItem[item.namaBarang];
-
+      totalHarga = int.parse(hbBarang.toString().substring(2).replaceAll(".", "")) * countItem[item.namaBarang];
       semuaHarga += totalHarga;
 
       return DataRow(cells: [
-        DataCell(
-          Text(
-            item.namaBarang,
-          ),
-        ),
-        DataCell(
-          Text(hargaBarang),
-        ),
+        DataCell(Text(item.namaBarang,),),
+        DataCell(Text(hbBarang),),
         DataCell(Text(countItem[item.namaBarang].toString())),
-        DataCell(Text((totalHarga).toString())),
+        DataCell(Text('Rp'+(totalHarga).toString())),
         DataCell(TextButton.icon(
           onPressed: () async {
             // await Firestore.instance
@@ -141,10 +125,13 @@ class _BillPageState extends State<BillPage> {
               // assert(intPrice is int);
               // harga = countItem[item.namaBarang] * intPrice;
               // jmlHarga = (jmlHarga - harga);
-              semuaHarga = semuaHarga -
-                  int.parse(hargaBarang) * countItem[item.namaBarang];
-              print(semuaHarga);
-
+              // semuaHarga = semuaHarga -
+              //     int.parse(hargaBarang) * countItem[item.namaBarang];
+              print(item.namaBarang);
+// setState(() {
+//   TransaksiItem[indeksBarang]['jmlStok'] =
+//       int.parse(TransaksiItem[indeksBarang]['jmlStok'].toString()) - 1;
+// });
               items.remove(item);
               countItem.remove(item.namaBarang);
             });
@@ -308,7 +295,7 @@ class _BillPageState extends State<BillPage> {
                                 border: Border.all(
                               color: Colors.black,
                             )),
-                            child: Text((semuaHarga).toString()),
+                            child: Text('Rp'+(semuaHarga).toString()),
                           ),
                         ],
                       ),
@@ -366,11 +353,18 @@ class _BillPageState extends State<BillPage> {
                                                             labelText: 'Uang Diterima',
                                                           ),
                                                           keyboardType: TextInputType.number,
+                                                          inputFormatters: [
+                                                            CurrencyTextInputFormatter(
+                                                                locale: 'id',
+                                                                decimalDigits:
+                                                                0,
+                                                                symbol: 'Rp')
+                                                          ],
                                                           controller: uangTerima,
                                                           validator: (value) {
                                                             if (uangTerima == null || uangTerima.text.isEmpty) {
                                                               return outputValidasi;
-                                                            }else if(int.parse(uangTerima.text) < semuaHarga){
+                                                            }else if(int.parse(uangTerima.text.substring(2).replaceAll(".", "")) < semuaHarga){
                                                               return uangKurang;
                                                             }
                                                             return null;
@@ -490,7 +484,7 @@ class _BillPageState extends State<BillPage> {
                                                                                                     ),
                                                                                                   ),
                                                                                                   Container(
-                                                                                                    child: Text('Rp' + uangTerima.text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                    child: Text(uangTerima.text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                                                                                                   )
                                                                                                 ],
                                                                                               ),
@@ -507,7 +501,7 @@ class _BillPageState extends State<BillPage> {
                                                                                                     ),
                                                                                                   ),
                                                                                                   Container(
-                                                                                                    child: Text('Rp' + (int.parse(uangTerima.text) - semuaHarga).toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                                                                                                    child: Text('Rp' + (int.parse(uangTerima.text.substring(2).replaceAll(".", "")) - semuaHarga).toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                                                                                                   )
                                                                                                 ],
                                                                                               ),

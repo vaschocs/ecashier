@@ -48,6 +48,7 @@ class CustomCard extends State<StateCard> {
                         minStok: TransaksiItem[i]['minStok'].toString(),
                         jmlStok: TransaksiItem[i]['jmlStok'].toString(),
                         hbBarang: TransaksiItem[i]['hbBarang'].toString(),
+                        indexBarang: TransaksiItem[i].toString()
                       ),
                     ));
               }

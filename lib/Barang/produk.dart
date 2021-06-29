@@ -435,11 +435,10 @@ class _ProdukPageState extends State<ProdukPage> {
                                                                 TextInputType
                                                                     .number,
                                                             validator: (value) {
-                                                              if (value ==
-                                                                      null ||
-                                                                  value
-                                                                      .isEmpty) {
+                                                              if (value == null || value.isEmpty) {
                                                                 return 'Harga Beli Wajib Diisi';
+                                                              }else if(int.parse(hbBarang.text.substring(2).replaceAll(".", ""))>int.parse(hjBarang.text.substring(2).replaceAll(".", ""))) {
+                                                                return 'Harga Jual kurang dari Harga Beli';
                                                               }
 
                                                               return null;
@@ -472,8 +471,8 @@ class _ProdukPageState extends State<ProdukPage> {
                                                             validator: (value) {
                                                               if (value == null || value.isEmpty) {
                                                                 return 'Harga Jual Wajib Diisi';
-                                                              }else if(hbBarang>hjBarang) {
-
+                                                              }else if(int.parse(hbBarang.text.substring(2).replaceAll(".", ""))>int.parse(hjBarang.text.substring(2).replaceAll(".", ""))) {
+return 'Harga Beli Melebihi Harga Jual';
                                                               }
                                                               return null;
                                                             },
