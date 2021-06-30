@@ -150,6 +150,7 @@ indeksBarang = widget.indexBarang;
     return dataRows;
   }
 
+
   int getNama(namaBarang) {
     for (int a = 0; a < TransaksiItem.length; a++) {
       if (namaBarang == TransaksiItem[a]['namaBarang']) {

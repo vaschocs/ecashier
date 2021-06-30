@@ -37,7 +37,6 @@ class ProdukPage extends StatefulWidget {
 }
 
 class _ProdukPageState extends State<ProdukPage> {
-
   var queryResultSet = [];
   var tempSearchStore = [];
 
@@ -126,6 +125,7 @@ class _ProdukPageState extends State<ProdukPage> {
         'waktuPesanLama': leadTimeLama.text,
         'rataPenjualan': rataPenjualan.text,
         'rataPenjualanTinggi': rataPenjualanTinggi.text,
+        'searchKey': namaBarang.text.substring(0,1)
       });
       namaBarang.text = '';
       selectedKategori = null;
@@ -146,14 +146,11 @@ class _ProdukPageState extends State<ProdukPage> {
     }
   }
 
-  var ltDemand;
+
   @override
   void initState() {
     super.initState();
-
   }
-
-
 
 
 
@@ -183,13 +180,12 @@ class _ProdukPageState extends State<ProdukPage> {
                                       initiateSearch(val);
                                     },
                                     decoration: InputDecoration(
-                                        prefixIcon: IconButton(
+
+                                      suffixIcon: IconButton(
                                           color: Colors.black,
-                                          icon: Icon(Icons.arrow_back),
+                                          icon: Icon(Icons.search),
                                           iconSize: 20.0,
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
+
                                         ),
                                         contentPadding:
                                             EdgeInsets.only(left: 25.0),
@@ -199,73 +195,77 @@ class _ProdukPageState extends State<ProdukPage> {
                                                 BorderRadius.circular(4.0)))),
                               ),
                             ),
-                            // SizedBox(
-                            //   height: 10.0,
-                            // ),
-                            // GridView.count(
-                            //   padding: EdgeInsets.only(left: 10.0, right: 10.0),
-                            //   crossAxisCount: 2,
-                            //   crossAxisSpacing: 4.0,
-                            //   mainAxisSpacing: 4.0,
-                            //   primary: false,
-                            //   shrinkWrap: true,
-                            //   children: tempSearchStore.map((element) {
-                            //     return buildResultCard(element);
-                            //   }).toList(),
-                            // ),
+                            SizedBox(
+                              height: 2.0,
+                            ),
+                            Container(
+                              height: 600,
+                              child: Container(
+                                padding:
+                                    EdgeInsets.only(left: 10.0, right: 10.0),
+                                child: Column(
+                                  children: tempSearchStore.map((element) {
 
-                            Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 10),
-                                child: Container(
-                                  height: 600,
-                                  width: 1500,
-                                  decoration: BoxDecoration(
-                                      border: Border.all(
-                                    color: Colors.grey,
-                                  )),
-                                  child: StreamBuilder(
-                                    stream: Firestore.instance
-                                        .collection('barang')
-                                        .orderBy('jmlStok', descending: false)
-                                        .snapshots(),
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                                      if (!snapshot.hasData)
-                                        return new Container(
-                                          child: Column(
-                                            children: <Widget>[
-                                              Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              )
-                                            ],
-                                          ),
-                                        );
+                                      return Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 10, horizontal: 10),
+                                          child: Container(
+                                            height: 90,
+                                            width: 1500,
+                                            decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Colors.grey,
+                                                )),
+                                            child: StreamBuilder(
+                                              stream: Firestore.instance
+                                                  .collection('barang')
+                                                  .where('namaBarang',
+                                                  isEqualTo:
+                                                  element['namaBarang'])
+                                                  .orderBy('jmlStok',
+                                                  descending: false)
+                                                  .snapshots(),
+                                              builder: (BuildContext context,
+                                                  AsyncSnapshot<QuerySnapshot>
+                                                  snapshot) {
+                                                if (!snapshot.hasData)
+                                                  return new Container(
+                                                    child: Column(
+                                                      children: <Widget>[
+                                                        Center(
+                                                          child:
+                                                          CircularProgressIndicator(),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  );
 
-                                      return new Container(
-                                          child: TaskList(
-                                        document: snapshot.data.documents,
-                                      ));
-                                    },
-                                  ),
-                                )),
+                                                return new Container(
+                                                    child: TaskList(
+                                                      document:
+                                                      snapshot.data.documents,
+                                                    ));
+                                              },
+                                            ),
+                                          ));
+
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10.0,),
                             Container(
                               width: 1250,
                               height: 50,
                               child: RaisedButton(
                                 color: Colors.blue,
-                                child: Text(
-                                  'Tambah',
-                                  style: TextStyle(
-                                      fontSize: 30, color: Colors.white),
-                                ),
+                                child: Text('Tambah',
+                                  style: TextStyle(fontSize: 30, color: Colors.white),),
                                 onPressed: () {
                                   showDialog(
                                       context: context,
                                       builder: (BuildContext konteksAdd) {
                                         return AlertDialog(
-
                                           content: Stack(
                                             // ignore: deprecated_member_use
                                             overflow: Overflow.visible,
@@ -283,17 +283,29 @@ class _ProdukPageState extends State<ProdukPage> {
                                                         Padding(
                                                             padding: EdgeInsets
                                                                 .symmetric(
-                                                                vertical: 10,
-                                                                horizontal:
-                                                                10),
+                                                                    vertical:
+                                                                        10,
+                                                                    horizontal:
+                                                                        10),
                                                             child: Container(
-                                                              alignment: Alignment.center,
-                                                              color: Colors.lightBlue[200],
+                                                              alignment:
+                                                                  Alignment
+                                                                      .center,
+                                                              color: Colors
+                                                                      .lightBlue[
+                                                                  200],
                                                               width: 1200,
                                                               height: 40,
-                                                              child: Text('Tambah Barang',style: TextStyle(fontWeight:FontWeight.bold,fontSize: 20),),
-                                                            )
-                                                        ),
+                                                              child: Text(
+                                                                'Tambah Barang',
+                                                                style: TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    fontSize:
+                                                                        20),
+                                                              ),
+                                                            )),
                                                         Padding(
                                                           padding: EdgeInsets
                                                               .symmetric(
@@ -435,9 +447,25 @@ class _ProdukPageState extends State<ProdukPage> {
                                                                 TextInputType
                                                                     .number,
                                                             validator: (value) {
-                                                              if (value == null || value.isEmpty) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
                                                                 return 'Harga Beli Wajib Diisi';
-                                                              }else if(int.parse(hbBarang.text.substring(2).replaceAll(".", ""))>int.parse(hjBarang.text.substring(2).replaceAll(".", ""))) {
+                                                              } else if (int.parse(hbBarang
+                                                                      .text
+                                                                      .substring(
+                                                                          2)
+                                                                      .replaceAll(
+                                                                          ".",
+                                                                          "")) >
+                                                                  int.parse(hjBarang
+                                                                      .text
+                                                                      .substring(
+                                                                          2)
+                                                                      .replaceAll(
+                                                                          ".",
+                                                                          ""))) {
                                                                 return 'Harga Jual kurang dari Harga Beli';
                                                               }
 
@@ -454,25 +482,48 @@ class _ProdukPageState extends State<ProdukPage> {
                                                                 hbBarang,
                                                           ),
                                                         ),
-                                                        Padding(padding: EdgeInsets.symmetric(
+                                                        Padding(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
                                                                   vertical: 10,
-                                                                  horizontal: 10),
+                                                                  horizontal:
+                                                                      10),
                                                           child: TextFormField(
-                                                            decoration: InputDecoration(
-                                                              border: OutlineInputBorder(),
-                                                              labelText: 'Harga Jual Barang',
+                                                            decoration:
+                                                                InputDecoration(
+                                                              border:
+                                                                  OutlineInputBorder(),
+                                                              labelText:
+                                                                  'Harga Jual Barang',
                                                             ),
-                                                            inputFormatters:
-                                                            [
+                                                            inputFormatters: [
                                                               CurrencyTextInputFormatter(
                                                                   locale: 'id',
-                                                                  decimalDigits: 0,
-                                                                  symbol: 'Rp')],
+                                                                  decimalDigits:
+                                                                      0,
+                                                                  symbol: 'Rp')
+                                                            ],
                                                             validator: (value) {
-                                                              if (value == null || value.isEmpty) {
+                                                              if (value ==
+                                                                      null ||
+                                                                  value
+                                                                      .isEmpty) {
                                                                 return 'Harga Jual Wajib Diisi';
-                                                              }else if(int.parse(hbBarang.text.substring(2).replaceAll(".", ""))>int.parse(hjBarang.text.substring(2).replaceAll(".", ""))) {
-return 'Harga Beli Melebihi Harga Jual';
+                                                              } else if (int.parse(hbBarang
+                                                                      .text
+                                                                      .substring(
+                                                                          2)
+                                                                      .replaceAll(
+                                                                          ".",
+                                                                          "")) >
+                                                                  int.parse(hjBarang
+                                                                      .text
+                                                                      .substring(
+                                                                          2)
+                                                                      .replaceAll(
+                                                                          ".",
+                                                                          ""))) {
+                                                                return 'Harga Beli Melebihi Harga Jual';
                                                               }
                                                               return null;
                                                             },
@@ -533,19 +584,9 @@ return 'Harga Beli Melebihi Harga Jual';
                                                                     supplierItems =
                                                                     [];
                                                                 for (int i = 0;
-                                                                    i <
-                                                                        snapshot
-                                                                            .data
-                                                                            .documents
-                                                                            .length;
-                                                                    i++) {
-                                                                  DocumentSnapshot
-                                                                      snap =
-                                                                      snapshot
-                                                                          .data
-                                                                          .documents[i];
-                                                                  supplierItems.add(
-                                                                      DropdownMenuItem(
+                                                                    i < snapshot.data.documents.length; i++) {
+                                                                  DocumentSnapshot snap = snapshot.data.documents[i];
+                                                                  supplierItems.add(DropdownMenuItem(
                                                                     child: Text(
                                                                       snap.data[
                                                                           'namaSupplier'],
@@ -598,34 +639,15 @@ return 'Harga Beli Melebihi Harga Jual';
                                                                 );
                                                               }
                                                             }),
-
                                                         Padding(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                                  vertical: 10,
-                                                                  horizontal:
-                                                                      10),
+                                                          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                                                           child: TextFormField(
-                                                            decoration: InputDecoration(
-                                                                border:
-                                                                    OutlineInputBorder(),
-                                                                labelText:
-                                                                    'Waktu Pemesanan'),
-                                                            keyboardType:
-                                                                TextInputType
-                                                                    .number,
-                                                            inputFormatters: <
-                                                                TextInputFormatter>[
-                                                              FilteringTextInputFormatter
-                                                                  .digitsOnly
-                                                            ],
-                                                            controller:
-                                                                leadTime,
+                                                            decoration: InputDecoration(border: OutlineInputBorder(), labelText: 'Waktu Pemesanan'),
+                                                            keyboardType: TextInputType.number,
+                                                            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                                            controller: leadTime,
                                                             validator: (value) {
-                                                              if (value ==
-                                                                      null ||
-                                                                  value
-                                                                      .isEmpty) {
+                                                              if (value == null || value.isEmpty) {
                                                                 return 'Stok Barang Wajib Diisi';
                                                               }
                                                               return null;
@@ -748,7 +770,6 @@ return 'Harga Beli Melebihi Harga Jual';
                                                                   RaisedButton(
                                                                 onPressed:
                                                                     () async {
-
                                                                   if (formKey2
                                                                       .currentState
                                                                       .validate()) {
@@ -911,22 +932,8 @@ class TaskList extends StatelessWidget {
         String jmlStok = document[i].data['jmlStok'].toString();
         String namaSupplier = document[i].data['namaSupplier'].toString();
 
-        var intMinStok = int.parse(minStok);
-        assert(intMinStok is int);
-        var intJmlStok = int.parse(jmlStok);
-        assert(intJmlStok is int);
 
-        TextEditingController controllerNama =
-            TextEditingController(text: namaBarang);
-        TextEditingController controllerHj =
-            TextEditingController(text: hjBarang);
-        TextEditingController controllerHb =
-            TextEditingController(text: hbBarang);
-        TextEditingController controllerjmlStok =
-            TextEditingController(text: jmlStok);
-        TextEditingController controllerminStok =
-            TextEditingController(text: minStok);
-        final index = document[i].reference;
+
 
         return new Padding(
           padding: const EdgeInsets.all(5.0),
@@ -992,20 +999,14 @@ class TaskList extends StatelessWidget {
                                                           MaterialPageRoute(
                                                             builder: (context) =>
                                                                 EditBarangPage(
-                                                              namaBarang:
-                                                                  namaBarang,
-                                                              hjBarang:
-                                                                  hjBarang,
+                                                              namaBarang: namaBarang,
+                                                              hjBarang: hjBarang,
                                                               minStok: minStok,
-                                                              katBarang:
-                                                                  katBarang,
-                                                              hbBarang:
-                                                                  hbBarang,
+                                                              katBarang: katBarang,
+                                                              hbBarang: hbBarang,
                                                               jmlStok: jmlStok,
-                                                              namaSupplier:
-                                                                  namaSupplier,
-                                                              index: document[i]
-                                                                  .reference,
+                                                              namaSupplier: namaSupplier,
+                                                              index: document[i].reference,
                                                             ),
                                                           ));
                                                     },
@@ -1029,27 +1030,17 @@ class TaskList extends StatelessWidget {
                                                           color: Colors.white),
                                                     ),
                                                     onPressed: () {
-                                                      Navigator.of(editKonteks)
-                                                          .pop();
-                                                      Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                TanpaNamaPage(
-                                                              namaBarang:
-                                                                  namaBarang,
-                                                              hjBarang:
-                                                                  hjBarang,
+                                                      Navigator.of(editKonteks).pop();
+                                                      Navigator.push(context, MaterialPageRoute(
+                                                            builder: (context) => TanpaNamaPage(
+                                                              namaBarang: namaBarang,
+                                                              hjBarang: hjBarang,
                                                               minStok: minStok,
-                                                              katBarang:
-                                                                  katBarang,
-                                                              hbBarang:
-                                                                  hbBarang,
+                                                              katBarang: katBarang,
+                                                              hbBarang: hbBarang,
                                                               jmlStok: jmlStok,
-                                                              namaSupplier:
-                                                                  namaSupplier,
-                                                              index: document[i]
-                                                                  .reference,
+                                                              namaSupplier: namaSupplier,
+                                                              index: document[i].reference,
                                                             ),
                                                           ));
                                                     },
@@ -1087,7 +1078,7 @@ class TaskList extends StatelessWidget {
                         });
                   },
                   leading: Icon(
-                    intMinStok <= intJmlStok
+                    int.parse(minStok) <= int.parse(jmlStok)
                         ? Icons.format_list_bulleted
                         : Icons.report,
                     color: Colors.black,

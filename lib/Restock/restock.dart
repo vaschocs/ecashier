@@ -96,11 +96,8 @@ class TaskList extends StatelessWidget {
 
 
 
-        var intMinStok = int.parse(minStok);
-        assert(intMinStok is int);
 
-        var intJmlStok = int.parse(jmlStok);
-        assert(intJmlStok is int);
+
 
         int stokNow = int.parse(jmlStok);
 
@@ -475,7 +472,7 @@ class TaskList extends StatelessWidget {
                         });
                   },
                   leading: Icon(
-                    intMinStok <= intJmlStok
+                    int.parse(minStok) <= int.parse(jmlStok)
                         ? Icons.format_list_bulleted
                         : Icons.report,
                     color:  Colors.black,
