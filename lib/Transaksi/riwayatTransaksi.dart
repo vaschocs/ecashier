@@ -2,28 +2,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../side_drawer.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Riwayat Restock',
+      title: 'Riwayat Transaksi',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: RiwayatPage(),
+      home: RiwayatTransaksiPage(),
     );
   }
 }
 
-class RiwayatPage extends StatefulWidget {
+class RiwayatTransaksiPage extends StatefulWidget {
   @override
-  _RiwayatPageState createState() => _RiwayatPageState();
+  _RiwayatTransaksiPageState createState() => _RiwayatTransaksiPageState();
 }
 
-class _RiwayatPageState extends State<RiwayatPage> {
+class _RiwayatTransaksiPageState extends State<RiwayatTransaksiPage> {
 
   DateTime selectedDate = DateTime.now();
 
@@ -42,76 +44,98 @@ class _RiwayatPageState extends State<RiwayatPage> {
 
   void initState() {
     super.initState();
-
+    print(selectedDate);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        drawer: SideDrawer(),
+        appBar: AppBar(
+          title: Text('Riwayat Tranksasi'),
+        ),
         body: Column(
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Row(
-            children: <Widget>[
-              Container(
-                alignment: Alignment.center,
-                height: 60,
-                width: 250,
-                child: Card(
-                  child: ListTile(
-                    trailing: Icon(Icons.arrow_drop_down),
-                    title: Text('Pilih Tanggal Riwayat'),
-                    onTap: () => _selectDate(context),
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    alignment: Alignment.center,
+                    height: 60,
+                    width: 250,
+                    child: Card(
+                      child: ListTile(
+                        trailing: Icon(Icons.arrow_drop_down),
+                        title: Text('Pilih Tanggal Riwayat'),
+                        onTap: () => _selectDate(context),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              Container(
-                alignment: Alignment.center,
-                height: 60,
-                width: 250,
-                child: Card(
-                  child: ListTile(
+                  Container(
+                    alignment: Alignment.center,
+                    height: 60,
+                    width: 130,
+                    child: Card(
+                      child: ListTile(
 
-                    title: Text(selectedDate.toString()),
-                    onTap: () => _selectDate(context),
+                        title: Text(selectedDate.toString().substring(0,11)),
+                        onTap: () => _selectDate(context),
+                      ),
+                    ),
                   ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Container(
+                height: 600,
+                width: 1500,
+                decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey,
+                    )),
+                child: StreamBuilder(
+                  stream: Firestore.instance
+                      .collection('detailTransaksi')
+                      .where('tanggalTransaksi', isEqualTo: selectedDate.toString())
+                      .snapshots(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<QuerySnapshot> snapshot) {
+                    print(selectedDate);
+                    if (!snapshot.hasData)
+                      return new Container(
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ));
+                    return new TaskList(
+                      document: snapshot.data.documents
+                    );
+                  },
                 ),
               ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10),
-          child: Container(
-            height: 600,
-            width: 1500,
-            decoration: BoxDecoration(
-                border: Border.all(
-              color: Colors.grey,
-            )),
-            child: StreamBuilder(
-              stream: Firestore.instance
-                  .collection('riwayatRestock')
-                  .where('tanggalStock', isEqualTo: selectedDate.toString())
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                print(selectedDate);
-                if (!snapshot.hasData)
-                  return new Container(
-                      child: Center(
-                    child: CircularProgressIndicator(),
-                  ));
-                return new TaskList(
-                  document: snapshot.data.documents,
-                );
-              },
             ),
-          ),
-        ),
-      ],
-    ));
+          ],
+        ));
+  }
+}
+class BillItem {
+  BillItem(
+      {this.namaBarang, this.hjBarang, this.totalPembelian, this.jmlBarang});
+
+  final String namaBarang;
+  String hjBarang;
+  int jmlBarang;
+  String totalPembelian;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'namaBarang': namaBarang,
+      'hjBarang': hjBarang,
+      'jmlBarang': jmlBarang,
+      'totalPembelian': totalPembelian
+    };
   }
 }
 
@@ -119,17 +143,23 @@ class TaskList extends StatelessWidget {
   TaskList({this.document});
   final List<DocumentSnapshot> document;
 
+
+
+
   @override
   Widget build(BuildContext context) {
     return new ListView.builder(
       itemCount: document.length,
       itemBuilder: (BuildContext context, int i) {
-        String namaBarang = document[i].data['namaBarang'].toString();
-        String tanggalStock = document[i].data['tanggalStock'].toString();
-        String stokAwal = document[i].data['stokAwal'].toString();
-        String namaSupplier = document[i].data['namaSupplier'].toString();
-        String hargaBeli = document[i].data['hargaBeli'].toString();
-        String addStok = document[i].data['addStok'].toString();
+        String namaBarang = document[i].data['Item'][0]['totalPembelian'].toString();
+        String totalHarga = document[i].data['totalHarga'].toString();
+        // List<String> _dataBarang = dataBarang.split(',');
+
+        String tanggalTransaksi = document[i].data['tanggalTransaksi'].toString().substring(0,11);
+        // String stokAwal = document[i].data['stokAwal'].toString();
+        // String namaSupplier = document[i].data['namaSupplier'].toString();
+        // String hargaBeli = document[i].data['hargaBeli'].toString();
+        // String addStok = document[i].data['addStok'].toString();
 
 
 
@@ -166,7 +196,7 @@ class TaskList extends StatelessWidget {
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 children: <Widget>[
                                                   Text('Detail Restock',style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold),),
-                                                  Text(tanggalStock,style: TextStyle(fontSize: 20),),
+                                                  Text(tanggalTransaksi,style: TextStyle(fontSize: 20),),
                                                 ],
                                               ),
 
@@ -179,9 +209,9 @@ class TaskList extends StatelessWidget {
                                                   Container(
                                                     child: Text('Nama Barang',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
                                                   ),
-                                                  Container(
-                                                    child: Text(namaBarang),
-                                                  ),
+                                                  // Container(
+                                                  //   child: Text(namaBarang),
+                                                  // ),
                                                 ],
                                               ),
                                               Container(
@@ -193,9 +223,9 @@ class TaskList extends StatelessWidget {
                                                   Container(
                                                     child: Text('Nama Supplier',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
                                                   ),
-                                                  Container(
-                                                    child: Text(namaSupplier),
-                                                  ),
+                                                  // Container(
+                                                  //   child: Text(namaSupplier),
+                                                  // ),
                                                 ],
                                               ),
                                               Container(
@@ -207,9 +237,9 @@ class TaskList extends StatelessWidget {
                                                   Container(
                                                     child: Text('Harga Beli',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
                                                   ),
-                                                  Container(
-                                                    child: Text(hargaBeli),
-                                                  ),
+                                                  // Container(
+                                                  //   child: Text(hargaBeli),
+                                                  // ),
                                                 ],
                                               ),
                                               Container(
@@ -221,9 +251,9 @@ class TaskList extends StatelessWidget {
                                                   Container(
                                                     child: Text('Stok Awal',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
                                                   ),
-                                                  Container(
-                                                    child: Text(stokAwal + " pcs"),
-                                                  ),
+                                                  // Container(
+                                                  //   child: Text(stokAwal + " pcs"),
+                                                  // ),
                                                 ],
                                               ),
                                               Container(
@@ -235,9 +265,9 @@ class TaskList extends StatelessWidget {
                                                   Container(
                                                     child: Text('Tambah Stok',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
                                                   ),
-                                                  Container(
-                                                    child: Text(addStok+ " pcs"),
-                                                  ),
+                                                  // Container(
+                                                  //   child: Text(addStok+ " pcs"),
+                                                  // ),
                                                 ],
                                               ),
                                               Container(
@@ -249,9 +279,9 @@ class TaskList extends StatelessWidget {
                                                   Container(
                                                     child: Text('Total Stok',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
                                                   ),
-                                                  Container(
-                                                    child: Text((int.parse(stokAwal)+int.parse(addStok)).toString()+ " pcs"),
-                                                  ),
+                                                  // Container(
+                                                  //   child: Text((int.parse(stokAwal)+int.parse(addStok)).toString()+ " pcs"),
+                                                  // ),
                                                 ],
                                               ),
                                               Container(
@@ -302,12 +332,16 @@ class TaskList extends StatelessWidget {
                         });
                   },
                   leading: Icon(Icons.history),
+                  trailing: Text(
+                    'Total Transaksi : Rp ' + totalHarga,
+                    style: TextStyle(fontSize: 20),
+                  ),
                   title: Text(
                     'Nama Barang : ' + namaBarang,
                     style: TextStyle(fontSize: 20),
                   ),
                   subtitle: Text(
-                    'Tanggal : ' + tanggalStock,
+                    'Tanggal : ' + tanggalTransaksi,
                     style: TextStyle(fontSize: 18),
                   ),
                 )),

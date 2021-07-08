@@ -57,7 +57,7 @@ class _SupplierPageState extends State<SupplierPage> {
 
 
   // ignore: missing_return
-  Future<bool> cek(String value, BuildContext konteksAdd) async {
+  Future<bool> addSupplier(String value, BuildContext konteksAdd) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('supplier')
         .where('namaSupplier', isEqualTo: value)
@@ -65,6 +65,7 @@ class _SupplierPageState extends State<SupplierPage> {
         .getDocuments();
     final List<DocumentSnapshot> documents = result.documents;
     if (documents.length >= 1) {
+      // ignore: await_only_futures
       await setState(() {
         sama = true;
       });
@@ -75,7 +76,7 @@ class _SupplierPageState extends State<SupplierPage> {
         'kontakSupplier': kontakSupplier.text,
 
       });
-
+      // ignore: await_only_futures
       await Navigator.of(konteksAdd).pop();
 
       final snackBar =
@@ -85,6 +86,7 @@ class _SupplierPageState extends State<SupplierPage> {
       namaSupplier.text = '';
       alamatSupplier.text = '';
       kontakSupplier.text = '';
+      // ignore: await_only_futures
       await setState(() {
         sama = false;
       });
@@ -151,7 +153,7 @@ class _SupplierPageState extends State<SupplierPage> {
                                       if (value == null || value.isEmpty) {
                                         return 'Masukan Nama Supplier Baru';
                                       } else {
-                                        cek(value, konteksAdd);
+                                        addSupplier(value, konteksAdd);
                                         if (sama) {
                                           return outputValidasi;
                                         } else if (!sama) {
@@ -275,13 +277,14 @@ class TaskList extends StatelessWidget {
   bool adaFile;
   bool fileUsed;
 
-  Future<bool> update(
+  Future<bool> updateSupplier(
       DocumentReference index, String value, BuildContext konteksUpdate) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('supplier')
         .where('namaSupplier', isEqualTo: value)
         .limit(1)
         .getDocuments();
+    // ignore: await_only_futures
     final List<DocumentSnapshot> documents = await result.documents;
     if (documents.length >= 1) {
       hasil = true;
@@ -324,26 +327,26 @@ class TaskList extends StatelessWidget {
         final index = document[i].reference;
 
 
+        // ignore: missing_return
         Future<bool> updateBarang() async {
           final QuerySnapshot result = await Firestore.instance
               .collection('barang')
               .where('namaSupplier', isEqualTo: namaSupplier)
               .getDocuments();
           final List<DocumentSnapshot> documents = result.documents.toList();
-          print(documents[i]['namaBarang']);
+          print('LOL'+documents[i]['docDate']);
           for (var j = 0; j < documents.length; j++) {
-            Firestore.instance.collection('barang')
-                .document(documents[j]['namaBarang']).updateData({
+            Firestore.instance
+                .collection('barang')
+                .document(documents[j]['docDate'])
+                .updateData({
               "namaSupplier": editSupplier.text,
-            }).then((result){
-              print("new USer true");
-            }).catchError((onError){
+            }).then((result) {
+              print("Updating Barang succes");
+            }).catchError((onError) {
               print("onError");
             });
-
           }
-
-
         }
         // ignore: missing_return
         Future<bool> deleteSupplier(
@@ -434,14 +437,11 @@ class TaskList extends StatelessWidget {
                                                         'Nama Supplier',
                                                       ),
                                                       validator: (value) {
-                                                        update(index, value,
-                                                            konteksUpdate);
+                                                        updateSupplier(index, value, konteksUpdate);
                                                         updateBarang();
-                                                        if (value == null ||
-                                                            value.isEmpty) {
+                                                        if (value == null || value.isEmpty) {
                                                           return 'Masukan Nama Supplier Baru';
-                                                        } else if (hasil ==
-                                                            true) {
+                                                        } else if (hasil == true) {
                                                           return outputValidasi;
                                                         } else {
                                                           return null;

@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+
+
+import '../main.dart';
 
 void main() => runApp(MyApp());
 BuildContext konteks;
@@ -29,23 +31,31 @@ class MyApp extends StatelessWidget {
 class TanpaNamaPage extends StatefulWidget {
   TanpaNamaPage(
       {this.namaBarang,
-      this.katBarang,
-      this.hjBarang,
-      this.hbBarang,
-      this.jmlStok,
-      this.minStok,
-      this.namaSupplier,
-      this.leadTime,
-      this.index});
+        this.katBarang,
+        this.hjBarang,
+        this.hbBarang,
+        this.jmlStok,
+        this.minStok,
+        this.namaSupplier,
+        this.rataPenjualan,
+        this.rataPenjualanTinggi,
+        this.waktuPesan,
+        this.waktuPesanLama,
+        this.docDate});
+
 
   final String namaBarang;
+  final String waktuPesanLama;
+  final String waktuPesan;
+  final String rataPenjualan;
+  final String rataPenjualanTinggi;
   final String katBarang;
   final String hjBarang;
   final String hbBarang;
   final String jmlStok;
   final String minStok;
-  final index;
-  final String leadTime;
+  final String docDate;
+
   final String namaSupplier;
   @override
   TanpaNamaPageState createState() => TanpaNamaPageState();
@@ -54,14 +64,17 @@ class TanpaNamaPage extends StatefulWidget {
 class TanpaNamaPageState extends State<TanpaNamaPage> {
   var selectedKategori;
   var selectedSupplier;
-  var indeks;
+  var docDate;
 
   TextEditingController controllerNama;
   TextEditingController controllerHj;
   TextEditingController controllerHb;
   TextEditingController controllerjmlStok;
   TextEditingController controllerminStok;
-  TextEditingController controllerLeadTime;
+  TextEditingController controllerWaktuPesan;
+  TextEditingController controllerWaktuPesanLama;
+  TextEditingController controllerRataJual;
+  TextEditingController controllerRataJualTinggi;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -78,36 +91,26 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
     controllerHb = new TextEditingController(text: widget.hbBarang);
     controllerjmlStok = new TextEditingController(text: widget.jmlStok);
     controllerminStok = new TextEditingController(text: widget.minStok);
+    controllerWaktuPesanLama = new TextEditingController(text: widget.waktuPesanLama);
+    controllerWaktuPesan = new TextEditingController(text: widget.waktuPesan);
+    controllerRataJual = new TextEditingController(text: widget.rataPenjualan);
+    controllerRataJualTinggi = new TextEditingController(text: widget.rataPenjualanTinggi);
     selectedKategori = widget.katBarang;
     selectedSupplier = widget.namaSupplier;
-    indeks = widget.index;
-    controllerLeadTime = new TextEditingController(text: widget.leadTime);
+    docDate = widget.docDate;
+
   }
 
-  Future<bool> deleteBarang(
-      DocumentReference index, BuildContext deleteKonteks) async {
-    Firestore.instance.runTransaction((transaction) async {
-      DocumentSnapshot snapshot = await transaction.get(index);
-      await transaction.delete(snapshot.reference);
-
-      await Navigator.of(deleteKonteks).pop();
-
-      jawaban = true;
+  Future<bool> deleteBarang( BuildContext deleteKonteks) async {
+    Firestore.instance.collection('barang').document(widget.docDate).delete().then((result) {
+      print("new USer true");
+    }).catchError((onError) {
+      print("onError");
     });
-  }
-
-  Future<bool> update() async {
-    final QuerySnapshot result = await Firestore.instance
-        .collection('barang')
-        .where('namaBarang', isEqualTo: controllerNama.text)
-        .limit(1)
-        .getDocuments();
-    final List<DocumentSnapshot> document = result.documents;
-
-    hasil = false;
 
     return null;
   }
+
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,6 +221,21 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Harga Jual Wajib Diisi';
+                        }else if (int.parse(controllerHb
+                            .text
+                            .substring(
+                            2)
+                            .replaceAll(
+                            ".",
+                            "")) >
+                            int.parse(controllerHj
+                                .text
+                                .substring(
+                                2)
+                                .replaceAll(
+                                ".",
+                                ""))) {
+                          return 'Harga Jual kurang dari Harga Beli';
                         }
                         return null;
                       }),
@@ -237,6 +255,21 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Harga Beli Wajib Diisi';
+                        }else if (int.parse(controllerHb
+                            .text
+                            .substring(
+                            2)
+                            .replaceAll(
+                            ".",
+                            "")) >
+                            int.parse(controllerHj
+                                .text
+                                .substring(
+                                2)
+                                .replaceAll(
+                                ".",
+                                ""))) {
+                          return 'Harga Beli lebih dari Harga Jual';
                         }
                         return null;
                       }),
@@ -279,15 +312,15 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                 ),
                 StreamBuilder<QuerySnapshot>(
                     stream:
-                        Firestore.instance.collection('supplier').snapshots(),
+                    Firestore.instance.collection('supplier').snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return Text("Tidak bisa mendapatkan data");
                       } else {
                         List<DropdownMenuItem> supplierItems = [];
                         for (int i = 0;
-                            i < snapshot.data.documents.length;
-                            i++) {
+                        i < snapshot.data.documents.length;
+                        i++) {
                           DocumentSnapshot snap = snapshot.data.documents[i];
                           supplierItems.add(DropdownMenuItem(
                             child: Text(
@@ -323,33 +356,109 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                         );
                       }
                     }),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Rata Penjualan / Hari'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      controller: controllerRataJual,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Rata Penjualan Wajib Diisi';
+                        }
+                        return null;
+                      }),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Rata Penjualan Tertinggi / Hari'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      controller: controllerRataJualTinggi,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Rata Penjualan Tertinggi Wajib Diisi';
+                        }
+                        return null;
+                      }),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Waktu Pemesanan'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      controller: controllerWaktuPesan,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Waktu Pemesanan Wajib Diisi';
+                        }
+                        return null;
+                      }),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Waktu Pemesanan Terlama'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      controller: controllerWaktuPesanLama,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Waktu Pemesanan Terlama Wajib Diisi';
+                        }
+                        return null;
+                      }),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
                     Padding(
                       padding:
-                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      // ignore: deprecated_member_use
                       child: RaisedButton(
                         onPressed: () async {
-                          DateTime now = DateTime.now();
-                          String formattedDate =
-                              DateFormat('yyyy-MM-dd').format(now);
+
                           if (_formKey.currentState.validate()) {
-                            Firestore.instance.runTransaction(
-                                (Transaction transaction) async {
-                              DocumentSnapshot snapshot =
-                                  await transaction.get(indeks);
-                              await transaction.update(snapshot.reference, {
-                                'namaBarang': controllerNama.text,
-                                'kategoriBarang': selectedKategori,
-                                'namaSupplier': selectedSupplier,
-                                'hjBarang': controllerHj.text,
-                                'hbBarang': controllerHb.text,
-                                'jmlStok': controllerjmlStok.text,
-                                'minStok': controllerminStok.text,
-                                'waktu': formattedDate,
-                              });
+                            print(widget.namaBarang);
+                            Firestore.instance.collection('barang').document(widget.docDate).updateData({
+                              "kategoriBarang": selectedKategori,
+                              "hbBarang": controllerHb.text,
+                              "hjBarang": controllerHj.text,
+                              "kategoriBarang": selectedKategori,
+                              "minStok": controllerminStok.text,
+                              "namaSupplier": selectedSupplier,
+                              "rataPenjualan": controllerRataJual.text,
+                              "rataPenjualanTinggi": controllerRataJualTinggi.text,
+                              "waktuPesan": controllerWaktuPesan.text,
+                              "waktuPesanLama": controllerWaktuPesanLama.text,
+                              "jmlStok": controllerjmlStok.text,
+                            }).then((result) {
+                              print("new USer true");
+                            }).catchError((onError) {
+                              print(onError);
                             });
+
+
                             showDialog(
                                 context: context,
                                 builder: (BuildContext editKonteks) {
@@ -363,7 +472,7 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                                           children: <Widget>[
                                             Padding(
                                               padding:
-                                                  const EdgeInsets.all(8.0),
+                                              const EdgeInsets.all(8.0),
                                               child: Text(
                                                 "Apakah benar anda ingin melakukan update data barang?",
                                                 style: TextStyle(
@@ -374,68 +483,52 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                                             ),
                                             Row(
                                                 mainAxisAlignment:
-                                                    MainAxisAlignment.end,
+                                                MainAxisAlignment.end,
                                                 children: <Widget>[
                                                   Padding(
                                                     padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
+                                                    const EdgeInsets.all(
+                                                        8.0),
                                                     child: SizedBox(
                                                       height: 50,
                                                       width: 180,
+                                                      // ignore: deprecated_member_use
                                                       child: RaisedButton(
                                                         color: Colors.blue,
-                                                        child: Text(
-                                                          "Ya",
+                                                        child: Text("Ya",
                                                           style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                              fontWeight: FontWeight.bold,
                                                               fontSize: 20,
-                                                              color:
-                                                                  Colors.white),
-                                                        ),
+                                                              color: Colors.white),),
                                                         onPressed: () {
-                                                          Navigator.of(
-                                                                  editKonteks)
-                                                              .pop();
-                                                          Navigator.push(
-                                                              context,
-                                                              MaterialPageRoute(
-                                                                builder: (
-                                                                    context) =>
-                                                                    ProdukPage(
+                                                      setState(() {
+                                                        getData();
+                                                      });
 
-                                                                    ),
-                                                              ));
+                                  Navigator.of(editKonteks).pop();
+                                                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProdukPage(),));
                                                         },
                                                       ),
                                                     ),
                                                   ),
                                                   Padding(
                                                     padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
+                                                    const EdgeInsets.all(
+                                                        8.0),
                                                     child: SizedBox(
                                                       height: 50,
                                                       width: 180,
+                                                      // ignore: deprecated_member_use
                                                       child: RaisedButton(
                                                         color: Colors.red,
-                                                        child: Text(
-                                                          "Tidak",
+                                                        child: Text("Tidak",
                                                           style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                              fontWeight: FontWeight.bold,
                                                               fontSize: 20,
-                                                              color:
-                                                                  Colors.white),
+                                                              color: Colors.white),
                                                         ),
                                                         onPressed: () {
-                                                          Navigator.of(
-                                                                  editKonteks)
-                                                              .pop();
-
+                                                          Navigator.of(editKonteks).pop();
                                                         },
                                                       ),
                                                     ),
@@ -447,8 +540,7 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                                     ),
                                   );
                                 });
-                          }
-                          ;
+                          };
                         },
                         color: Colors.blue,
                         child: Padding(
@@ -471,7 +563,8 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                     ),
                     Padding(
                       padding:
-                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      // ignore: deprecated_member_use
                       child: RaisedButton(
                         onPressed: () async {
                           showDialog(
@@ -500,55 +593,57 @@ class TanpaNamaPageState extends State<TanpaNamaPage> {
                                           ),
                                           Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment.end,
+                                              MainAxisAlignment.end,
                                               children: <Widget>[
                                                 Padding(
                                                   padding:
-                                                      const EdgeInsets.all(8.0),
+                                                  const EdgeInsets.all(8.0),
                                                   child: SizedBox(
                                                     height: 50,
                                                     width: 180,
+                                                    // ignore: deprecated_member_use
                                                     child: RaisedButton(
                                                       color: Colors.red,
                                                       child: Text(
                                                         "Hapus",
                                                         style: TextStyle(
                                                             fontWeight:
-                                                                FontWeight.bold,
+                                                            FontWeight.bold,
                                                             fontSize: 20,
                                                             color:
-                                                                Colors.white),
+                                                            Colors.white),
                                                       ),
-                                                      onPressed: () {
-                                                        deleteBarang(indeks,
-                                                            deleteKonteks);
-                                                        Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(
+                                                      onPressed: () async {
+                                                        await deleteBarang(deleteKonteks);
+                                                        await Navigator.of(deleteKonteks).pop();
+                                                        await getData();
+                                                        Navigator.push(context, MaterialPageRoute(
                                                               builder: (context) => new ProdukPage(),
                                                             ));
+
                                                       },
                                                     ),
                                                   ),
                                                 ),
                                                 Padding(
                                                   padding:
-                                                      const EdgeInsets.all(8.0),
+                                                  const EdgeInsets.all(8.0),
                                                   child: SizedBox(
                                                     height: 50,
                                                     width: 180,
+                                                    // ignore: deprecated_member_use
                                                     child: RaisedButton(
                                                       child: Text("Batal",
                                                           style: TextStyle(
                                                               fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                              FontWeight
+                                                                  .bold,
                                                               fontSize: 20,
                                                               color: Colors
                                                                   .black)),
                                                       onPressed: () {
                                                         Navigator.of(
-                                                                deleteKonteks)
+                                                            deleteKonteks)
                                                             .pop();
                                                       },
                                                     ),

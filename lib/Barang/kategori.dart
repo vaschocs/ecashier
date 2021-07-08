@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// ignore: must_be_immutable
 class KategoriPage extends StatefulWidget {
   KategoriPage({this.namaKategori});
   String namaKategori;
@@ -41,7 +42,8 @@ class _KategoriPageState extends State<KategoriPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  Future<bool> cek(String value, BuildContext konteksAdd) async {
+  // ignore: missing_return
+  Future<bool> addKategori(String value, BuildContext konteksAdd) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('kategori')
         .where('namaKategori', isEqualTo: value)
@@ -49,15 +51,14 @@ class _KategoriPageState extends State<KategoriPage> {
         .getDocuments();
     final List<DocumentSnapshot> documents = result.documents;
     if (documents.length >= 1) {
+      // ignore: await_only_futures
       await setState(() {
         sama = true;
       });
     } else {
-      Firestore.instance
-          .collection("kategori")
-          .document()
-          .setData({'namaKategori': value});
+      Firestore.instance.collection("kategori").document().setData({'namaKategori': value});
 
+      // ignore: await_only_futures
       await Navigator.of(konteksAdd).pop();
 
       final snackBar =
@@ -65,7 +66,7 @@ class _KategoriPageState extends State<KategoriPage> {
       ScaffoldMessenger.of(konteks).showSnackBar(snackBar);
 
       namaKategori.text = '';
-
+      // ignore: await_only_futures
       await setState(() {
         sama = false;
       });
@@ -88,7 +89,7 @@ class _KategoriPageState extends State<KategoriPage> {
         title: Text('Kelola Produk'),
       ),
       body: StreamBuilder(
-        stream: Firestore.instance.collection('kategori').snapshots(),
+        stream: Firestore.instance.collection('kategori').orderBy('namaKategori',descending: false).snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData)
             return new Container(
@@ -125,8 +126,7 @@ class _KategoriPageState extends State<KategoriPage> {
                                   Container(
                                     child: Icon(Icons.category_rounded),
                                   ),
-                                  Text(
-                                    'Tambah Kategori',
+                                  Text('Tambah Kategori',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 30),
@@ -148,7 +148,7 @@ class _KategoriPageState extends State<KategoriPage> {
                                     if (value == null || value.isEmpty) {
                                       return 'Masukan Nama Kategori Baru';
                                     } else {
-                                      cek(value, konteksAdd);
+                                      addKategori(value, konteksAdd);
                                       if (sama) {
                                         return outputValidasi;
                                       } else if (!sama) {
@@ -175,6 +175,7 @@ class _KategoriPageState extends State<KategoriPage> {
                                     child: SizedBox(
                                       height: 50,
                                       width: 180,
+                                      // ignore: deprecated_member_use
                                       child: RaisedButton(
                                         color: Colors.blue,
                                         child: Text(
@@ -231,6 +232,7 @@ class _KategoriPageState extends State<KategoriPage> {
   }
 }
 
+// ignore: must_be_immutable
 class TaskList extends StatelessWidget {
   TaskList({this.document});
 
@@ -243,13 +245,14 @@ class TaskList extends StatelessWidget {
   bool adaFile;
   bool fileUsed;
 
-  Future<bool> update(
+  Future<bool> updateKategori(
       DocumentReference index, String value, BuildContext konteksUpdate) async {
     final QuerySnapshot result = await Firestore.instance
         .collection('kategori')
         .where('namaKategori', isEqualTo: value)
         .limit(1)
         .getDocuments();
+    // ignore: await_only_futures
     final List<DocumentSnapshot> documents = await result.documents;
     if (documents.length >= 1) {
       hasil = true;
@@ -275,30 +278,27 @@ class TaskList extends StatelessWidget {
     final _formKey = GlobalKey<FormState>();
     return new ListView.builder(
       itemCount: document.length,
-      itemBuilder: (
-        BuildContext konteksUpdate,
-        int i,
-      ) {
+      itemBuilder: (BuildContext konteksUpdate, int i,) {
         String namaKategori = document[i].data['namaKategori'].toString();
-        TextEditingController editKategori =
-            TextEditingController(text: namaKategori);
+        TextEditingController editKategori = TextEditingController(text: namaKategori);
         final index = document[i].reference;
 
+        // ignore: missing_return
         Future<bool> updateBarang() async {
           final QuerySnapshot result = await Firestore.instance
               .collection('barang')
               .where('kategoriBarang', isEqualTo: namaKategori)
               .getDocuments();
           final List<DocumentSnapshot> documents = result.documents.toList();
-          print(documents[i]['namaBarang']);
+          print('LOL'+documents[i]['docDate']);
           for (var j = 0; j < documents.length; j++) {
             Firestore.instance
                 .collection('barang')
-                .document(documents[j]['namaBarang'])
+                .document(documents[j]['docDate'])
                 .updateData({
               "kategoriBarang": editKategori.text,
             }).then((result) {
-              print("new USer true");
+              print("Updating Barang succes");
             }).catchError((onError) {
               print("onError");
             });
@@ -306,8 +306,7 @@ class TaskList extends StatelessWidget {
         }
 
         // ignore: missing_return
-        Future<bool> deleteKategori(
-            DocumentReference index, BuildContext deleteKonteks) async {
+        Future<bool> deleteKategori(DocumentReference index, BuildContext deleteKonteks) async {
           final QuerySnapshot result = await Firestore.instance
               .collection('barang')
               .where('kategoriBarang', isEqualTo: namaKategori)
@@ -362,21 +361,13 @@ class TaskList extends StatelessWidget {
                           icon: Icon(Icons.edit),
                           color: Colors.blue,
                           onPressed: () async {
-                            // if (adaBarang == true) {
-                            //   final snackBar = SnackBar(
-                            //       content: Text('Kategori ' +
-                            //           namaKategori +
-                            //           ' tidak dapat diubah karna berkaitan Data Barang'));
-                            //   ScaffoldMessenger.of(konteks)
-                            //       .showSnackBar(snackBar);
-                            // }
-
                             showDialog(
                                 context: context,
                                 builder: (BuildContext konteksUpdate) {
                                   return AlertDialog(
                                     title: Text("Edit Kategori"),
                                     content: Stack(
+                                      // ignore: deprecated_member_use
                                       // ignore: deprecated_member_use
                                       overflow: Overflow.visible,
                                       children: <Widget>[
@@ -402,14 +393,11 @@ class TaskList extends StatelessWidget {
                                                           'Nama Kategori',
                                                     ),
                                                     validator: (value) {
-                                                      update(index, value,
-                                                          konteksUpdate);
+                                                      updateKategori(index, value, konteksUpdate);
                                                       updateBarang();
-                                                      if (value == null ||
-                                                          value.isEmpty) {
+                                                      if (value == null || value.isEmpty) {
                                                         return 'Masukan Nama Kategori Baru';
-                                                      } else if (hasil ==
-                                                          true) {
+                                                      } else if (hasil == true) {
                                                         return outputValidasi;
                                                       }
                                                       return null;
@@ -428,22 +416,18 @@ class TaskList extends StatelessWidget {
                                                       child: SizedBox(
                                                         height: 50,
                                                         width: 180,
+                                                        // ignore: deprecated_member_use
                                                         child: RaisedButton(
                                                           color: Colors.blue,
                                                           child: Text(
                                                             "Edit",
                                                             style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
+                                                                fontWeight: FontWeight.bold,
                                                                 fontSize: 20,
-                                                                color: Colors
-                                                                    .white),
+                                                                color: Colors.white),
                                                           ),
                                                           onPressed: () async {
-                                                            if (_formKey
-                                                                .currentState
-                                                                .validate()) {}
+                                                            if (_formKey.currentState.validate()) {}
                                                             ;
                                                           },
                                                         ),
@@ -456,19 +440,14 @@ class TaskList extends StatelessWidget {
                                                       child: SizedBox(
                                                         height: 50,
                                                         width: 180,
+                                                        // ignore: deprecated_member_use
                                                         child: RaisedButton(
                                                           child: Text("Batal",
                                                               style: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
+                                                                  fontWeight: FontWeight.bold,
                                                                   fontSize: 20,
-                                                                  color: Colors
-                                                                      .black)),
-                                                          onPressed: () {
-                                                            Navigator.of(
-                                                                    konteksUpdate)
-                                                                .pop();
+                                                                  color: Colors.black)),
+                                                          onPressed: () {Navigator.of(konteksUpdate).pop();
                                                           },
                                                         ),
                                                       ),
@@ -525,6 +504,7 @@ class TaskList extends StatelessWidget {
                                                     child: SizedBox(
                                                       height: 50,
                                                       width: 180,
+                                                      // ignore: deprecated_member_use
                                                       child: RaisedButton(
                                                         color: Colors.red,
                                                         child: Text(
@@ -566,6 +546,7 @@ class TaskList extends StatelessWidget {
                                                     child: SizedBox(
                                                       height: 50,
                                                       width: 180,
+                                                      // ignore: deprecated_member_use
                                                       child: RaisedButton(
                                                         child: Text("Batal",
                                                             style: TextStyle(

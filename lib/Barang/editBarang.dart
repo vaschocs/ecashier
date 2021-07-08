@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+
+
+import '../main.dart';
 
 void main() => runApp(MyApp());
 BuildContext konteks;
@@ -35,17 +37,24 @@ class EditBarangPage extends StatefulWidget {
       this.jmlStok,
       this.minStok,
       this.namaSupplier,
-      this.leadTime,
-      this.index});
+        this.rataPenjualan,
+        this.rataPenjualanTinggi,
+        this.waktuPesan,
+        this.waktuPesanLama,
+      this.docDate});
 
   final String namaBarang;
+  final String waktuPesanLama;
+  final String waktuPesan;
+  final String rataPenjualan;
+  final String rataPenjualanTinggi;
   final String katBarang;
   final String hjBarang;
   final String hbBarang;
   final String jmlStok;
   final String minStok;
-  final index;
-  final String leadTime;
+  final String docDate;
+
   final String namaSupplier;
   @override
   _EditBarangPageState createState() => _EditBarangPageState();
@@ -54,7 +63,7 @@ class EditBarangPage extends StatefulWidget {
 class _EditBarangPageState extends State<EditBarangPage> {
   var selectedKategori;
   var selectedSupplier;
-  var indeks;
+  var docDate;
 
   TextEditingController controllerNama;
   TextEditingController controllerHj;
@@ -68,9 +77,8 @@ class _EditBarangPageState extends State<EditBarangPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  bool jawaban;
   bool hasil;
-  bool hasilnya;
+
   String outputValidasi = "Nama Barang Sudah Terdaftar";
 
   @override
@@ -81,32 +89,41 @@ class _EditBarangPageState extends State<EditBarangPage> {
     controllerHb = new TextEditingController(text: widget.hbBarang);
     controllerjmlStok = new TextEditingController(text: widget.jmlStok);
     controllerminStok = new TextEditingController(text: widget.minStok);
+    controllerWaktuPesanLama = new TextEditingController(text: widget.waktuPesanLama);
+    controllerWaktuPesan = new TextEditingController(text: widget.waktuPesan);
+    controllerRataJual = new TextEditingController(text: widget.rataPenjualan);
+    controllerRataJualTinggi = new TextEditingController(text: widget.rataPenjualanTinggi);
     selectedKategori = widget.katBarang;
     selectedSupplier = widget.namaSupplier;
-    indeks = widget.index;
+    docDate = widget.docDate;
+
+
 
   }
 
-  Future<bool> deleteBarang(
-      DocumentReference index, BuildContext deleteKonteks) async {
-    Firestore.instance.runTransaction((transaction) async {
-      DocumentSnapshot snapshot = await transaction.get(index);
-      await transaction.delete(snapshot.reference);
-
-      await Navigator.of(deleteKonteks).pop();
-
-      jawaban = true;
+  Future<bool> deleteBarang(BuildContext deleteKonteks) async {
+    Firestore.instance
+        .collection('barang')
+        .document(widget.docDate)
+        .delete()
+        .then((result) {
+      print("Delete Barang success");
+    }).catchError((onError) {
+      print(onError);
     });
+    // ignore: await_only_futures
+    await Navigator.of(deleteKonteks).pop();
+
     Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => new ProdukPage(),
         ));
+    return null;
   }
 
-  Future<bool> update() async {
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('yyyy-MM-dd').format(now);
+  Future<bool> updateBarang() async {
+    print(widget.docDate);
     final QuerySnapshot result = await Firestore.instance
         .collection('barang')
         .where('namaBarang', isEqualTo: controllerNama.text)
@@ -118,18 +135,27 @@ class _EditBarangPageState extends State<EditBarangPage> {
       hasil = true;
     } else {
       hasil = false;
-      Firestore.instance.runTransaction((Transaction transaction) async {
-        DocumentSnapshot snapshot = await transaction.get(indeks);
-        await transaction.update(snapshot.reference, {
-          'namaBarang': controllerNama.text,
-          'kategoriBarang': selectedKategori,
-          'namaSupplier': selectedSupplier,
-          'hjBarang': controllerHj.text,
-          'hbBarang': controllerHb.text,
-          'jmlStok': controllerjmlStok.text,
-          'minStok': controllerminStok.text,
-          'waktu': formattedDate,
-        });
+      print(widget.namaBarang);
+      await Firestore.instance
+          .collection('barang')
+          .document(widget.docDate)
+          .updateData({
+        "kategoriBarang": selectedKategori,
+        "hbBarang": controllerHb.text,
+        "hjBarang": controllerHj.text,
+        "kategoriBarang": selectedKategori,
+        "minStok": controllerminStok.text,
+        "namaBarang": controllerNama.text,
+        "namaSupplier": selectedSupplier,
+        "rataPenjualan": controllerRataJual.text,
+        "rataPenjualanTinggi": controllerRataJualTinggi.text,
+        "waktuPesan": controllerWaktuPesan.text,
+        "waktuPesanLama": controllerWaktuPesanLama.text,
+        "jmlStok": controllerjmlStok.text,
+      }).then((result) {
+        print("update success");
+      }).catchError((onError) {
+        print(onError);
       });
       showDialog(
           context: context,
@@ -153,61 +179,55 @@ class _EditBarangPageState extends State<EditBarangPage> {
                         ),
                       ),
                       Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: <Widget>[
                             Padding(
-                              padding:
-                              const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(8.0),
                               child: SizedBox(
                                 height: 50,
                                 width: 180,
+                                // ignore: deprecated_member_use
                                 child: RaisedButton(
                                   color: Colors.blue,
                                   child: Text(
                                     "Ya",
                                     style: TextStyle(
-                                        fontWeight:
-                                        FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 20,
-                                        color:
-                                        Colors.white),
+                                        color: Colors.white),
                                   ),
                                   onPressed: () {
-                                    Navigator.of(
-                                        editKonteks)
-                                        .pop();
+                                    setState(() {
+                                      getData();
+                                    });
+                                    Navigator.of(editKonteks).pop();
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                          new ProdukPage(),
+                                              new ProdukPage(),
                                         ));
                                   },
                                 ),
                               ),
                             ),
                             Padding(
-                              padding:
-                              const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(8.0),
                               child: SizedBox(
                                 height: 50,
                                 width: 180,
+                                // ignore: deprecated_member_use
                                 child: RaisedButton(
                                   color: Colors.red,
                                   child: Text(
                                     "Tidak",
                                     style: TextStyle(
-                                        fontWeight:
-                                        FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                         fontSize: 20,
-                                        color:
-                                        Colors.white),
+                                        color: Colors.white),
                                   ),
                                   onPressed: () {
-                                    Navigator.of(
-                                        editKonteks)
-                                        .pop();
+                                    Navigator.of(editKonteks).pop();
                                   },
                                 ),
                               ),
@@ -225,6 +245,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
 
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       drawer: SideDrawer(),
       appBar: AppBar(
         title: Text('Edit Produk'),
@@ -271,8 +292,8 @@ class _EditBarangPageState extends State<EditBarangPage> {
                     ),
                     controller: controllerNama,
                     validator: (controllerNama) {
-                      update();
-                      print('haw' + hasil.toString());
+                      updateBarang();
+
                       if (controllerNama == null || controllerNama.isEmpty) {
                         return 'Masukan Nama Barang Baru';
                       } else if (hasil == true) {
@@ -351,6 +372,13 @@ class _EditBarangPageState extends State<EditBarangPage> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Harga Jual Wajib Diisi';
+                        } else if (int.parse(controllerHb.text
+                                .substring(2)
+                                .replaceAll(".", "")) >
+                            int.parse(controllerHj.text
+                                .substring(2)
+                                .replaceAll(".", ""))) {
+                          return 'Harga Jual kurang dari Harga Beli';
                         }
                         return null;
                       }),
@@ -370,6 +398,13 @@ class _EditBarangPageState extends State<EditBarangPage> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Harga Beli Wajib Diisi';
+                        } else if (int.parse(controllerHb.text
+                                .substring(2)
+                                .replaceAll(".", "")) >
+                            int.parse(controllerHj.text
+                                .substring(2)
+                                .replaceAll(".", ""))) {
+                          return 'Harga Beli lebih dari Harga Jual';
                         }
                         return null;
                       }),
@@ -456,15 +491,89 @@ class _EditBarangPageState extends State<EditBarangPage> {
                         );
                       }
                     }),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Rata Penjualan / Hari'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      controller: controllerRataJual,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Rata Penjualan Wajib Diisi';
+                        }
+                        return null;
+                      }),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Rata Penjualan Tertinggi / Hari'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      controller: controllerRataJualTinggi,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Rata Penjualan Tertinggi Wajib Diisi';
+                        }
+                        return null;
+                      }),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Waktu Pemesanan'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      controller: controllerWaktuPesan,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Waktu Pemesanan Wajib Diisi';
+                        }
+                        return null;
+                      }),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                  child: TextFormField(
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Waktu Pemesanan Terlama'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      controller: controllerWaktuPesanLama,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Waktu Pemesanan Terlama Wajib Diisi';
+                        }
+                        return null;
+                      }),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
                     Padding(
                       padding:
                           EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      // ignore: deprecated_member_use
                       child: RaisedButton(
                         onPressed: () async {
-                          if (_formKey.currentState.validate()) ;
+                          if (_formKey.currentState.validate()) {}
+                          ;
                         },
                         color: Colors.blue,
                         child: Padding(
@@ -488,6 +597,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                     Padding(
                       padding:
                           EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      // ignore: deprecated_member_use
                       child: RaisedButton(
                         onPressed: () async {
                           showDialog(
@@ -524,6 +634,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                                                   child: SizedBox(
                                                     height: 50,
                                                     width: 180,
+                                                    // ignore: deprecated_member_use
                                                     child: RaisedButton(
                                                       color: Colors.red,
                                                       child: Text(
@@ -536,7 +647,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                                                                 Colors.white),
                                                       ),
                                                       onPressed: () {
-                                                        deleteBarang(indeks,
+                                                        deleteBarang(
                                                             deleteKonteks);
                                                       },
                                                     ),
@@ -548,6 +659,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
                                                   child: SizedBox(
                                                     height: 50,
                                                     width: 180,
+                                                    // ignore: deprecated_member_use
                                                     child: RaisedButton(
                                                       child: Text("Batal",
                                                           style: TextStyle(
@@ -561,6 +673,9 @@ class _EditBarangPageState extends State<EditBarangPage> {
                                                         Navigator.of(
                                                                 deleteKonteks)
                                                             .pop();
+                                                        setState(() {
+                                                          getData();
+                                                        });
                                                       },
                                                     ),
                                                   ),

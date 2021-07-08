@@ -2,12 +2,14 @@ import 'package:ecashier/Analisis/pergerakan.dart';
 import 'package:ecashier/Barang/kategori.dart';
 import 'package:ecashier/Barang/produk.dart';
 import 'package:ecashier/Barang/supplier.dart';
-import 'package:ecashier/Transaksi/transaksi.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ecashier/side_drawer.dart';
 
 import 'package:ecashier/Restock/kelolaRestock.dart';
+
+import 'main.dart';
 
 void main() => runApp(MyApp());
 
@@ -58,6 +60,7 @@ class HomePage extends StatelessWidget {
                         child: InkWell(
                           splashColor: Colors.blue, // splash color
                           onTap: () {
+                            getData();
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -101,7 +104,7 @@ class HomePage extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
-                              Icon(Icons.shopping_basket),
+                              Icon(Icons.person),
                               Text(" "), // icon
                               Text("Kelola Supplier",
                                   style: TextStyle(
@@ -246,6 +249,42 @@ class HomePage extends StatelessWidget {
                               Icon(Icons.compare_arrows_sharp),
                               Text(" "), // icon
                               Text("Pergerakan Barang",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 30,
+                                      color: Colors.black)), // text
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 25,
+                  ),
+                  SizedBox.fromSize(
+                    size: Size(400, 300), // button width and height
+                    child: ClipRect(
+                      child: Material(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(),
+                            side: BorderSide(width: 2, color: Colors.blue)),
+                        color: Colors.white60, // button color
+                        child: InkWell(
+                          splashColor: Colors.blue, // splash color
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AnalisPage(),
+                                ));
+                          }, // button pressed
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Icon(Icons.history),
+                              Text(" "), // icon
+                              Text("Riwayat Penjualan",
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 30,

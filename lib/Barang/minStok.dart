@@ -100,6 +100,7 @@ class _MinimumStokPageState extends State<MinimumStokPage> {
     indeks = widget.index;
   }
 
+  // ignore: missing_return
   Future<bool> deleteBarang(DocumentReference index, BuildContext deleteKonteks) async {
     Firestore.instance.runTransaction((transaction) async {
       // final snackBar = SnackBar(

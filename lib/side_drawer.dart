@@ -1,6 +1,7 @@
 import 'package:ecashier/Analisis/pergerakan.dart';
 import 'package:ecashier/Barang/produk.dart';
 import 'package:ecashier/Restock/kelolaRestock.dart';
+import 'package:ecashier/Transaksi/riwayatTransaksi.dart';
 import 'package:ecashier/Transaksi/transaksi.dart';
 import 'package:ecashier/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -70,12 +71,15 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.shopping_basket),
             title: Text('Kelola Produk'),
-            onTap: () => {Navigator.push(
+            onTap: ()  {
+              getData();
+              Navigator.push(
             context,
             MaterialPageRoute(
             builder: (context) => ProdukPage(),
-            ))},
+            ));},
           ),
+
           ListTile(
             leading: Icon(Icons.category),
             title: Text('Kelola Kategori'),
@@ -116,6 +120,15 @@ class SideDrawerState extends State<SideDrawer>{
                 context,
                 MaterialPageRoute(
                   builder: (context) => AnalisPage(),
+                ))},
+          ),
+          ListTile(
+            leading: Icon(Icons.history),
+            title: Text('Riwayat Transaksi'),
+            onTap: () => {Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RiwayatTransaksiPage(),
                 ))},
           ),
           ListTile(

@@ -2,6 +2,7 @@ import 'package:ecashier/side_drawer.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 void main() => runApp(MyApp());
 
@@ -54,7 +55,7 @@ class _AnalisPageState extends State<AnalisPage> {
                 stream: Firestore.instance
                     .collection('barang')
                     .where('kategoriBarang', isEqualTo: selectedKategori)
-                    .orderBy('kategoriPergerakan', descending: true)
+                    .orderBy('tanggalPergerakan', descending: false)
                     .snapshots(),
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -86,7 +87,7 @@ class TaskList extends StatelessWidget {
       itemCount: document.length,
       itemBuilder: (BuildContext context, int i,) {
         String namaBarang = document[i].data['namaBarang'].toString();
-        String hjBarang = document[i].data['hjBarang'].toString();
+        String tanggalPergerakan = document[i].data['tanggalPergerakan'].toString();
         String jmlStok = document[i].data['jmlStok'].toString();
         String stokAwal = document[i].data['stokAwal'].toString();
         String stokPakai = document[i].data['stokPakai'].toString();
@@ -116,10 +117,13 @@ class TaskList extends StatelessWidget {
 
 
         Future<bool> update() async {
+          DateTime tglPergerakan = DateTime.now();
+          String formattedDate = DateFormat('yyyy-MM-dd').format(tglPergerakan);
           Firestore.instance.runTransaction((Transaction transaction) async {
             DocumentSnapshot snapshot = await transaction.get(document[i].reference);
             await transaction.update(snapshot.reference, {
               'kategoriPergerakan': kategori,
+              'tanggalPergerakan' : formattedDate,
               'minStok': minimalStok});
           });
           return null;
@@ -374,15 +378,15 @@ class TaskList extends StatelessWidget {
                         color: Colors.black),
                     title: Text(
                       namaBarang,
-                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold, color: Colors.black),
                     ),
-                    subtitle: Text(
-                      hjBarang,
-                      style: TextStyle(fontSize: 18, color: Colors.black),
+                    subtitle: Text('Tanggal Update : ' +
+                      tanggalPergerakan,
+                      style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold, color: Colors.black),
                     ),
                     trailing: Text(
                       analisis.toString(),
-                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.black),
                     ))),
           ),
         );

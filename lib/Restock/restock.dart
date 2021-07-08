@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter login UI',
+      title: 'Restock Barang',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -62,7 +62,7 @@ class TaskList extends StatelessWidget {
 
   TextEditingController tambahStok = TextEditingController();
 
-  Future<bool> update(DocumentReference index, BuildContext konteksUpdate2,
+  Future<bool> updateBarang(DocumentReference index, BuildContext konteksUpdate2,
       int stokNow, String namaBarang) async {
     int addStok = int.tryParse(tambahStok.text);
 
@@ -94,24 +94,18 @@ class TaskList extends StatelessWidget {
 
         String sMinStok = minStok.toString();
 
-
-
-
-
-
         int stokNow = int.parse(jmlStok);
 
-        Future<bool> add(
+        Future<bool> addStok(
             DocumentReference index, int stokNow, String namaBarang) async {
           int addStok = int.tryParse(tambahStok.text);
           DateTime now = DateTime.now();
-          String formattedDate =
-              DateFormat('yyyy-MM-dd 00:00:00.000').format(now);
+          String formattedDate = DateFormat('yyyy-MM-dd 00:00:00.000').format(now);
           String formattedTime = DateFormat('hh:mm:ss').format(now);
           Firestore.instance.collection("riwayatRestock").document().setData({
             'namaBarang': namaBarang,
             'addStok': addStok,
-            'tanggal': formattedDate,
+            'tanggalStock': formattedDate,
             'waktu': formattedTime,
             'namaSupplier': namaSupplier,
             'stokAwal': jmlStok,
@@ -344,42 +338,31 @@ class TaskList extends StatelessWidget {
                                                                     ),
                                                                   ),
                                                                   Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .end,
-                                                                      children: <
-                                                                          Widget>[
+                                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                                      children: <Widget>[
                                                                         Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(8.0),
-                                                                          child:
-                                                                              SizedBox(
-                                                                            height:
-                                                                                50,
-                                                                            width:
-                                                                                180,
+                                                                          padding: const EdgeInsets.all(8.0),
+                                                                          child: SizedBox(
+                                                                            height: 50,
+                                                                            width: 180,
                                                                             child:
                                                                                 // ignore: deprecated_member_use
                                                                                 RaisedButton(
                                                                               color: Colors.blue,
                                                                               child: Text("Tambah", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white)),
                                                                               onPressed: () {
-                                                                                add(index, stokNow, namaBarang);
-                                                                                update(index, konteksUpdate, stokNow, namaBarang);
+                                                                                addStok(index, stokNow, namaBarang);
+                                                                                updateBarang(index, konteksUpdate, stokNow, namaBarang);
                                                                                 Navigator.of(konteksUpdate2).pop();
                                                                               },
                                                                             ),
                                                                           ),
                                                                         ),
                                                                         Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.all(8.0),
-                                                                          child:
-                                                                              SizedBox(
-                                                                            height:
-                                                                                50,
-                                                                            width:
-                                                                                180,
+                                                                          padding: const EdgeInsets.all(8.0),
+                                                                          child: SizedBox(
+                                                                            height: 50,
+                                                                            width: 180,
                                                                             child:
                                                                                 // ignore: deprecated_member_use
                                                                                 RaisedButton(

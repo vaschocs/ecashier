@@ -26,16 +26,15 @@ class MyApp extends StatelessWidget {
 }
 
 class BillPage extends StatefulWidget {
-  BillPage({
-    this.namaBarang,
-    this.hbBarang,
-    this.jmlStok,
-    this.minStok,
-    this.indexBarang
-  });
+  BillPage(
+      {this.namaBarang,
+      this.hjBarang,
+      this.jmlStok,
+      this.minStok,
+      this.indexBarang});
 
   final String namaBarang;
-  final String hbBarang;
+  final String hjBarang;
   final String jmlStok;
   final String minStok;
   final String indexBarang;
@@ -44,38 +43,42 @@ class BillPage extends StatefulWidget {
   _BillPageState createState() => _BillPageState();
 }
 
-class DataBarang {
-  DataBarang({this.namaBarang, this.hbBarang, this.totalPembelian, this.jmlBarang});
-  final String namaBarang;
-  final String hbBarang;
-  final jmlBarang;
-  final String totalPembelian;
-}
-
 class BillItem {
-  BillItem({this.namaBarang, this.hbBarang, this.totalPembelian, this.jmlBarang});
+  BillItem(
+      {this.namaBarang, this.hjBarang, this.totalPembelian, this.jmlBarang});
 
   final String namaBarang;
-  final String hbBarang;
-  final jmlBarang;
-  final String totalPembelian;
+  String hjBarang;
+  int jmlBarang;
+  String totalPembelian;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'namaBarang': namaBarang,
+      'hjBarang': hjBarang,
+      'jmlBarang': jmlBarang,
+      'totalPembelian': totalPembelian
+    };
+  }
 }
 
 List<BillItem> items = [];
 
 Map<String, int> countItem = new Map<String, int>();
 
+Map<String, int> countHarga = new Map<String, int>();
+var semuaHarga = 0;
+
 class _BillPageState extends State<BillPage> {
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
   var namaBarang;
-  var hbBarang;
+  var hjBarang;
   var jmlStok;
 
   var jmlHarga = 0;
-var indeksBarang;
+  var indeksBarang;
   var harga;
   var totalHarga;
-  var semuaHarga = 0;
 
   DateTime now = DateTime.now();
   String formattedDate;
@@ -83,56 +86,66 @@ var indeksBarang;
 
   void initState() {
     super.initState();
-indeksBarang = widget.indexBarang;
+    indeksBarang = widget.indexBarang;
     jmlStok = widget.jmlStok;
     namaBarang = widget.namaBarang;
-    hbBarang = widget.hbBarang;
-
+    hjBarang = widget.hjBarang;
     if (countItem.containsKey(namaBarang)) {
       countItem[namaBarang] += 1;
+      countHarga[namaBarang] =
+          int.parse(hjBarang.toString().substring(2).replaceAll(".", "")) *
+              countItem[namaBarang];
+      for (int i = 0; i < items.length; i++) {
+        if (items[i].namaBarang == namaBarang) {
+          items[i].totalPembelian = countHarga[namaBarang].toString();
+          items[i].jmlBarang += 1;
+        }
+      }
     } else {
       countItem[namaBarang] = 1;
-      items.add(BillItem(namaBarang: namaBarang, hbBarang: hbBarang));
+      countHarga[namaBarang] =
+          int.parse(hjBarang.toString().substring(2).replaceAll(".", ""));
+      items.add(BillItem(
+          namaBarang: namaBarang,
+          hjBarang: hjBarang,
+          jmlBarang: countItem[namaBarang],
+          totalPembelian: countHarga[namaBarang].toString()));
     }
+    semuaHarga +=
+        int.parse(hjBarang.toString().substring(2).replaceAll(".", ""));
   }
 
   Iterable<DataRow> mapItemDataRows(List<BillItem> items) {
     Iterable<DataRow> dataRows = items.map((item) {
-
-      totalHarga = int.parse(hbBarang.toString().substring(2).replaceAll(".", "")) * countItem[item.namaBarang];
-      semuaHarga += totalHarga;
-
       return DataRow(cells: [
-        DataCell(Text(item.namaBarang,),),
-        DataCell(Text(hbBarang),),
-        DataCell(Text(countItem[item.namaBarang].toString())),
-        DataCell(Text('Rp'+(totalHarga).toString())),
+        DataCell(
+          Text(
+            item.namaBarang,
+          ),
+        ),
+        DataCell(
+          Text(item.hjBarang),
+        ),
+        DataCell(Text(item.jmlBarang.toString())),
+        DataCell(Text('Rp' + item.totalPembelian)),
         DataCell(TextButton.icon(
           onPressed: () async {
-            // await Firestore.instance
-            //     .runTransaction((Transaction transaction) async {
-            //   DocumentSnapshot snapshot = await transaction.get(newIndex);
-            //   await transaction.update(snapshot.reference, {
-            //     'jmlStok': intStok + countItem[item.namaBarang],
-            //   });
-            // });
-            // print(intStokLocal + countItem[item.namaBarang]);
-            //
             setState(() {
-              // var newPrice = item.hargaBarang;
-              // var fixPrice = newPrice.replaceAll(".", "");
-              // intPrice = int.parse(fixPrice);
-              // assert(intPrice is int);
-              // harga = countItem[item.namaBarang] * intPrice;
-              // jmlHarga = (jmlHarga - harga);
-              // semuaHarga = semuaHarga -
-              //     int.parse(hargaBarang) * countItem[item.namaBarang];
-              print(item.namaBarang);
-// setState(() {
-//   TransaksiItem[indeksBarang]['jmlStok'] =
-//       int.parse(TransaksiItem[indeksBarang]['jmlStok'].toString()) - 1;
-// });
+              semuaHarga -= countHarga[item.namaBarang];
+              print(semuaHarga);
+              List<String> hasilKey = countItem.keys.toList();
+              for (var j = 0; j < hasilKey.length; j++) {
+                if (hasilKey[j] == item.namaBarang) {
+                  for (int a = 0; a < transaksiItem.length; a++) {
+                    if (hasilKey[j] == transaksiItem[a]['namaBarang']) {
+                      transaksiItem[a]['jmlStok'] += countItem[item.namaBarang];
+                    }
+                  }
+                }
+              }
+              ;
               items.remove(item);
+              countHarga.remove(item.namaBarang);
               countItem.remove(item.namaBarang);
             });
           },
@@ -150,11 +163,46 @@ indeksBarang = widget.indexBarang;
     return dataRows;
   }
 
+  int getStokPakai(namaBarang) {
+    for (int a = 0; a < transaksiItem.length; a++) {
+      if (namaBarang == transaksiItem[a]['namaBarang']) {
+        return transaksiItem[a]['stokPakai'];
+      }
+    }
+    return null;
+  }
+
+  // ignore: missing_return
+  Future<bool> addTransaksi(int semuaHarga) async {
+    List yourItemList = [];
+    for (int i = 0; i < items.length; i++) {
+      yourItemList.add(items[i].toMap());
+    }
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('yyyy-MM-dd 00:00:00.000').format(now);
+    await Firestore.instance.collection('detailTransaksi').document().setData({
+      'tanggalTransaksi': formattedDate,
+      'totalHarga': semuaHarga.toString(),
+      "Item": FieldValue.arrayUnion(yourItemList),
+      "uangDiterima" : uangTerima.text,
+      "kembalian" : int.parse(uangTerima.text.toString().substring(2).replaceAll(".", ""))-semuaHarga
+
+    });
+  }
 
   int getNama(namaBarang) {
-    for (int a = 0; a < TransaksiItem.length; a++) {
-      if (namaBarang == TransaksiItem[a]['namaBarang']) {
-        return TransaksiItem[a]['jmlStok'];
+    for (int a = 0; a < transaksiItem.length; a++) {
+      if (namaBarang == transaksiItem[a]['namaBarang']) {
+        return transaksiItem[a]['jmlStok'];
+      }
+    }
+    return null;
+  }
+
+  String getDocDate(namaBarang) {
+    for (int a = 0; a < transaksiItem.length; a++) {
+      if (namaBarang == transaksiItem[a]['namaBarang']) {
+        return transaksiItem[a]['docDate'];
       }
     }
     return null;
@@ -296,7 +344,7 @@ indeksBarang = widget.indexBarang;
                                 border: Border.all(
                               color: Colors.black,
                             )),
-                            child: Text('Rp'+(semuaHarga).toString()),
+                            child: Text('Rp' + semuaHarga.toString()),
                           ),
                         ],
                       ),
@@ -333,39 +381,60 @@ indeksBarang = widget.indexBarang;
                                               Form(
                                                 key: formKey,
                                                 child: Container(
-
                                                   child: Column(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: <Widget>[
-                                                      Text('Jumlah Uang Diterima',
+                                                      Text(
+                                                        'Jumlah Uang Diterima',
                                                         style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
+                                                            fontWeight:
+                                                                FontWeight.bold,
                                                             fontSize: 30),
                                                       ),
                                                       Container(
                                                         height: 20,
                                                       ),
-                                                      Padding(padding: EdgeInsets.symmetric(
+                                                      Padding(
+                                                        padding: EdgeInsets
+                                                            .symmetric(
                                                                 vertical: 10,
                                                                 horizontal: 10),
                                                         child: TextFormField(
-                                                          decoration: InputDecoration(
-                                                            border: OutlineInputBorder(),
-                                                            labelText: 'Uang Diterima',
+                                                          decoration:
+                                                              InputDecoration(
+                                                            border:
+                                                                OutlineInputBorder(),
+                                                            labelText:
+                                                                'Uang Diterima',
                                                           ),
-                                                          keyboardType: TextInputType.number,
+                                                          keyboardType:
+                                                              TextInputType
+                                                                  .number,
                                                           inputFormatters: [
                                                             CurrencyTextInputFormatter(
                                                                 locale: 'id',
                                                                 decimalDigits:
-                                                                0,
+                                                                    0,
                                                                 symbol: 'Rp')
                                                           ],
-                                                          controller: uangTerima,
+                                                          controller:
+                                                              uangTerima,
                                                           validator: (value) {
-                                                            if (uangTerima == null || uangTerima.text.isEmpty) {
+                                                            if (uangTerima ==
+                                                                    null ||
+                                                                uangTerima.text
+                                                                    .isEmpty) {
                                                               return outputValidasi;
-                                                            }else if(int.parse(uangTerima.text.substring(2).replaceAll(".", "")) < semuaHarga){
+                                                            } else if (int.parse(
+                                                                    uangTerima
+                                                                        .text
+                                                                        .substring(
+                                                                            2)
+                                                                        .replaceAll(
+                                                                            ".",
+                                                                            "")) <
+                                                                semuaHarga) {
                                                               return uangKurang;
                                                             }
                                                             return null;
@@ -373,37 +442,59 @@ indeksBarang = widget.indexBarang;
                                                         ),
                                                       ),
                                                       Row(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: <Widget>[
-                                                          Padding(padding: const EdgeInsets.all(8.0),
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
                                                             child: SizedBox(
                                                               height: 50,
                                                               width: 180,
-                                                              child: RaisedButton(
-                                                                      color: Colors.blue,
-                                                                      child: Text("Bayar Fix",
+                                                              // ignore: deprecated_member_use
+                                                              child:
+                                                                  // ignore: deprecated_member_use
+                                                                  RaisedButton(
+                                                                      color: Colors
+                                                                          .blue,
+                                                                      child:
+                                                                          Text(
+                                                                        "Bayar Fix",
                                                                         style: TextStyle(
-                                                                            fontWeight: FontWeight.bold,
-                                                                            fontSize: 20,
-                                                                            color: Colors.white),
+                                                                            fontWeight: FontWeight
+                                                                                .bold,
+                                                                            fontSize:
+                                                                                20,
+                                                                            color:
+                                                                                Colors.white),
                                                                       ),
-                                                                      onPressed: () {
-                                                                        if (formKey.currentState.validate()) {
+                                                                      onPressed:
+                                                                          () {
+                                                                        if (formKey
+                                                                            .currentState
+                                                                            .validate()) {
+                                                                          addTransaksi(semuaHarga);
+
                                                                           List<String>hasilKey = countItem.keys.toList();
                                                                           for (var j = 0; j < hasilKey.length; j++) {
-                                                                            Firestore.instance.collection('barang').document(hasilKey[j]).updateData({
+                                                                            var stokPakai = getStokPakai(hasilKey[j]);
+                                                                          
+                                                                            Firestore.instance.collection('barang').document(getDocDate(namaBarang)).updateData({
                                                                               "jmlStok": getNama(hasilKey[j]),
                                                                             }).then((result) {
                                                                               print("new USer true");
                                                                             }).catchError((onError) {
                                                                               print("onError");
                                                                             });
-                                                                            // Firestore.instance.runTransaction((Transaction transaction) async {
-                                                                            //   DocumentSnapshot snapshot =
-                                                                            //   await transaction.get();
-                                                                            //   await transaction.update(snapshot.reference,
-                                                                            //       {'kategoriPergerakan': kategori, 'minStok': minimalStok});
-                                                                            // });
+                                                                            Firestore.instance.collection('barang').document(getDocDate(namaBarang)).updateData({
+                                                                              "stokPakai": stokPakai + countItem[hasilKey[j]],
+                                                                            }).then((result) {
+                                                                              print("new USer true");
+                                                                            }).catchError((onError) {
+                                                                              print("onError");
+                                                                            });
                                                                           }
                                                                           ;
 
@@ -517,6 +608,7 @@ indeksBarang = widget.indexBarang;
                                                                                                     child: SizedBox(
                                                                                                       height: 50,
                                                                                                       width: 384,
+                                                                                                      // ignore: deprecated_member_use
                                                                                                       child: RaisedButton(
                                                                                                         color: Colors.blue,
                                                                                                         child: Text(
@@ -565,6 +657,7 @@ indeksBarang = widget.indexBarang;
                                                               height: 50,
                                                               width: 180,
                                                               child:
+                                                                  // ignore: deprecated_member_use
                                                                   RaisedButton(
                                                                 child: Text(
                                                                     "Batal",

@@ -2,7 +2,11 @@ import 'package:ecashier/Transaksi/bill.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'Barang/editBarang.dart';
+import 'Barang/edittanpanama.dart';
 import 'main.dart';
+
+
 
 
 
@@ -26,56 +30,56 @@ class CustomCard extends State<StateCard> {
   Widget build(BuildContext context) {
     return new Container(
       child: Card(
-          color: int.parse(TransaksiItem[i]['jmlStok'].toString()) == 0
-              ? Colors.grey.shade300
-              : int.parse(TransaksiItem[i]['minStok'].toString()) <=
-                      int.parse(TransaksiItem[i]['jmlStok'].toString())
-                  ? Colors.lightBlue[100]
-                  : Colors.redAccent[100],
+          color: int.parse(transaksiItem[i]['jmlStok'].toString()) == 0
+              ? Colors.black45
+              : int.parse(transaksiItem[i]['minStok'].toString()) <=
+              int.parse(transaksiItem[i]['jmlStok'].toString())
+              ? Colors.lightBlue[100]
+              : Colors.redAccent[100],
           child: ListTile(
             onTap: () {
-              if (int.parse(TransaksiItem[i]['jmlStok'].toString()) == 0) {
+              if (int.parse(transaksiItem[i]['jmlStok'].toString()) == 0) {
               } else {
                 setState(() {
-                  TransaksiItem[i]['jmlStok'] =
-                      int.parse(TransaksiItem[i]['jmlStok'].toString()) - 1;
+                  transaksiItem[i]['jmlStok'] =
+                      int.parse(transaksiItem[i]['jmlStok'].toString()) - 1;
                 });
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => BillPage(
-                        namaBarang: TransaksiItem[i]['namaBarang'],
-                        minStok: TransaksiItem[i]['minStok'].toString(),
-                        jmlStok: TransaksiItem[i]['jmlStok'].toString(),
-                        hbBarang: TransaksiItem[i]['hbBarang'].toString(),
-                        indexBarang: TransaksiItem[i].toString()
+                          namaBarang: transaksiItem[i]['namaBarang'],
+                          minStok: transaksiItem[i]['minStok'].toString(),
+                          jmlStok: transaksiItem[i]['jmlStok'].toString(),
+                          hjBarang: transaksiItem[i]['hjBarang'].toString(),
+                          indexBarang: transaksiItem[i].toString()
                       ),
                     ));
               }
             },
             leading: Icon(
-              int.parse(TransaksiItem[i]['minStok'].toString()) <=
-                      int.parse(TransaksiItem[i]['jmlStok'].toString())
+              int.parse(transaksiItem[i]['minStok'].toString()) <=
+                  int.parse(transaksiItem[i]['jmlStok'].toString())
                   ? Icons.format_list_bulleted
                   : Icons.report,
               color: Colors.black,
             ),
             title: Text(
-              TransaksiItem[i]['namaBarang'],
+              transaksiItem[i]['namaBarang'],
               style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             subtitle: Text(
-              TransaksiItem[i]['hbBarang'].toString(),
+              transaksiItem[i]['hjBarang'].toString(),
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black),
             ),
             trailing: Text(
-              'Jumlah Stok : ' + TransaksiItem[i]['jmlStok'].toString(),
+              'Jumlah Stok : ' + transaksiItem[i]['jmlStok'].toString(),
               style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -85,4 +89,3 @@ class CustomCard extends State<StateCard> {
     );
   }
 }
-
