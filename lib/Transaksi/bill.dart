@@ -472,6 +472,7 @@ class _BillPageState extends State<BillPage> {
                                                                       ),
                                                                       onPressed:
                                                                           () {
+                                                                        print('docDate'+getDocDate(namaBarang));
                                                                         if (formKey
                                                                             .currentState
                                                                             .validate()) {
@@ -480,7 +481,6 @@ class _BillPageState extends State<BillPage> {
                                                                           List<String>hasilKey = countItem.keys.toList();
                                                                           for (var j = 0; j < hasilKey.length; j++) {
                                                                             var stokPakai = getStokPakai(hasilKey[j]);
-                                                                          
                                                                             Firestore.instance.collection('barang').document(getDocDate(namaBarang)).updateData({
                                                                               "jmlStok": getNama(hasilKey[j]),
                                                                             }).then((result) {
@@ -515,6 +515,7 @@ class _BillPageState extends State<BillPage> {
                                                                                           height: 500,
                                                                                           width: 400,
                                                                                           child: Column(
+
                                                                                             mainAxisAlignment: MainAxisAlignment.center,
                                                                                             children: <Widget>[
                                                                                               Container(

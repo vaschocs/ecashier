@@ -668,14 +668,8 @@ class _ProdukPageState extends State<ProdukPage> {
                                                 } else {
                                                   List<DropdownMenuItem>
                                                       kategoriItems = [];
-                                                  for (int i = 0;
-                                                      i <
-                                                          snapshot.data
-                                                              .documents.length;
-                                                      i++) {
-                                                    DocumentSnapshot snap =
-                                                        snapshot
-                                                            .data.documents[i];
+                                                  for (int i = 0; i < snapshot.data.documents.length; i++) {
+                                                    DocumentSnapshot snap = snapshot.data.documents[i];
                                                     kategoriItems
                                                         .add(DropdownMenuItem(
                                                       child: Text(

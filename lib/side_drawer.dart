@@ -125,11 +125,13 @@ class SideDrawerState extends State<SideDrawer>{
           ListTile(
             leading: Icon(Icons.history),
             title: Text('Riwayat Transaksi'),
-            onTap: () => {Navigator.push(
+            onTap: ()  {
+    getDataTransaksi();
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => RiwayatTransaksiPage(),
-                ))},
+                ));},
           ),
           ListTile(
             leading: Icon(Icons.attach_money),

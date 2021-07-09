@@ -148,13 +148,20 @@ class _TransaksiPageState extends State<TransaksiPage> {
                   controller: searchBar,
                     onChanged:onSearch,
                     decoration: InputDecoration(
-                        prefixIcon: IconButton(
+                        suffixIcon: IconButton(
                           color: Colors.black,
-                          icon: Icon(Icons.arrow_back),
+                          icon: Icon(Icons.cancel),
                           iconSize: 20.0,
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            searchBar.clear();
+                            searchBar.text = '';
                           },
+                        ),
+                        prefixIcon: IconButton(
+                          color: Colors.black,
+                          icon: Icon(Icons.search),
+                          iconSize: 20.0,
+                          onPressed: () {},
                         ),
                         contentPadding: EdgeInsets.only(left: 25.0),
                         hintText: "Cari Produk",
@@ -177,56 +184,56 @@ class _TransaksiPageState extends State<TransaksiPage> {
                     final b = _search[i];
                     return new Container(
                       child: Card(
-                          color: int.parse(transaksiItem[i]['jmlStok'].toString()) == 0
+                          color: int.parse(b['jmlStok'].toString()) == 0
                               ? Colors.black45
-                              : int.parse(transaksiItem[i]['minStok'].toString()) <=
-                              int.parse(transaksiItem[i]['jmlStok'].toString())
+                              : int.parse(b['minStok'].toString()) <=
+                              int.parse(b['jmlStok'].toString())
                               ? Colors.lightBlue[100]
                               : Colors.redAccent[100],
                           child: ListTile(
                             onTap: () {
-                              if (int.parse(transaksiItem[i]['jmlStok'].toString()) == 0) {
+                              if (int.parse(b['jmlStok'].toString()) == 0) {
                               } else {
                                 setState(() {
-                                  transaksiItem[i]['jmlStok'] =
-                                      int.parse(transaksiItem[i]['jmlStok'].toString()) - 1;
+                                  b['jmlStok'] =
+                                      int.parse(b['jmlStok'].toString()) - 1;
                                 });
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => BillPage(
-                                          namaBarang: transaksiItem[i]['namaBarang'],
-                                          minStok: transaksiItem[i]['minStok'].toString(),
-                                          jmlStok: transaksiItem[i]['jmlStok'].toString(),
-                                          hjBarang: transaksiItem[i]['hjBarang'].toString(),
-                                          indexBarang: transaksiItem[i].toString()
+                                          namaBarang: b['namaBarang'],
+                                          minStok: b['minStok'].toString(),
+                                          jmlStok: b['jmlStok'].toString(),
+                                          hjBarang:b['hjBarang'].toString(),
+                                          indexBarang: b.toString()
                                       ),
                                     ));
                               }
                             },
                             leading: Icon(
-                              int.parse(transaksiItem[i]['minStok'].toString()) <=
-                                  int.parse(transaksiItem[i]['jmlStok'].toString())
+                              int.parse(b['minStok'].toString()) <=
+                                  int.parse(b['jmlStok'].toString())
                                   ? Icons.format_list_bulleted
                                   : Icons.report,
                               color: Colors.black,
                             ),
                             title: Text(
-                              transaksiItem[i]['namaBarang'],
+                              b['namaBarang'],
                               style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black),
                             ),
                             subtitle: Text(
-                              transaksiItem[i]['hjBarang'].toString(),
+                              b['hjBarang'].toString(),
                               style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black),
                             ),
                             trailing: Text(
-                              'Jumlah Stok : ' + transaksiItem[i]['jmlStok'].toString(),
+                              'Jumlah Stok : ' + b['jmlStok'].toString(),
                               style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,

@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
 
 // ignore: deprecated_member_use
 List<Map> transaksiItem = new List<Map>();
-List<Map> kategoriItem = new List<Map>();
+
 Future getData() async {
   // ignore: await_only_futures
   await Firestore.instance
@@ -55,22 +55,7 @@ Future getData() async {
   });
 }
 
-Future getDataKategori() async {
-  // ignore: await_only_futures
-  await Firestore.instance
-      .collection('kategori')
-      .snapshots()
-      .listen((documents) {
-    kategoriItem.clear();
-    if (documents.documents.length != 0) {
-      documents.documents.forEach((d) {
-        Map document = new Map();
-        document['namaKategori']=d['namaKategori'];
-        kategoriItem.add(document);
-      });
-    }
-  });
-}
+
 
 class MyLogin extends StatefulWidget {
   @override
